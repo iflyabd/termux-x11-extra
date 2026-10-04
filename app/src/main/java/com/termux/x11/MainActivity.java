@@ -323,7 +323,13 @@ public class MainActivity extends AppCompatActivity {
                 name = "dex";
             else
                 name = "external";
-            LorieView.sendWindowChange(screenWidth, screenHeight, framerate, name);
+            int monitors;
+            try {
+                monitors = Math.max(1, Math.min(3, Integer.parseInt(prefs.displaySplit.get())));
+            } catch (NumberFormatException e) {
+                monitors = 1;
+            }
+            LorieView.sendWindowChange(screenWidth, screenHeight, framerate, monitors, name);
         });
 
         registerReceiver(receiver, new IntentFilter(ACTION_START) {{

@@ -10,6 +10,16 @@
         <item>2</item>
         <item>3</item>
     </string-array>
+    <string-array name="displaySplitEntries">
+        <item>Single display</item>
+        <item>2 displays (split)</item>
+        <item>3 displays (split)</item>
+    </string-array>
+    <string-array name="displaySplitValues">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
     <string-array name="transformCapturedPointerEntries">
         <item>No</item>
         <item>Clockwise</item>

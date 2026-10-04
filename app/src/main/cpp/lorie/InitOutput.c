@@ -57,6 +57,13 @@ static struct present_screen_info loriePresentInfo;
 static dri3_screen_info_rec lorieDri3Info;
 static ExaDriverRec lorieExa;
 
+/* Split-display (XRandR heads): up to 3 virtual monitors sharing one framebuffer.
+ * Landscape (w >= h): heads side-by-side. Portrait (h > w): heads stacked. */
+#define LORIE_MAX_HEADS 3
+static RROutputPtr lorieOutputs[LORIE_MAX_HEADS] = { NULL, NULL, NULL };
+static RRCrtcPtr lorieCrtcs[LORIE_MAX_HEADS] = { NULL, NULL, NULL };
+static int lorieNumHeads = 0;
+
 typedef struct {
     DamagePtr damage;
     OsTimerPtr fpsTimer;
@@ -580,9 +587,7 @@ static Bool lorieRRGetInfo(unused ScreenPtr pScreen, Rotation *rotations) {
 
 static Bool lorieRandRInit(ScreenPtr pScreen) {
     rrScrPrivPtr pScrPriv;
-    RROutputPtr output;
-    RRCrtcPtr crtc;
-    RRModePtr mode;
+    int i;
 
     if (!RRScreenInit(pScreen))
        return FALSE;
@@ -594,18 +599,23 @@ static Bool lorieRandRInit(ScreenPtr pScreen) {
 
     RRScreenSetSizeRange(pScreen, 1, 1, 32767, 32767);
 
-    if (FALSE
-        || !(mode = lorieCvt(pScreen->width, pScreen->height, pvfb->root.framerate))
-        || !(crtc = RRCrtcCreate(pScreen, NULL))
-        || !RRCrtcGammaSetSize(crtc, 256)
-        || !(output = RROutputCreate(pScreen, pvfb->root.name, sizeof(pvfb->root.name), NULL))
-        || (output->nameLength = strlen(output->name), FalseNoop())
-        || !RROutputSetClones(output, NULL, 0)
-        || !RROutputSetModes(output, &mode, 1, 0)
-        || !RROutputSetCrtcs(output, &crtc, 1)
-        || !RROutputSetConnection(output, RR_Connected)
-        || !RRCrtcNotify(crtc, mode, 0, 0, RR_Rotate_0, NULL, 1, &output))
-        return FALSE;
+    for (i = 0; i < LORIE_MAX_HEADS; i++) {
+        char name[64];
+        RRCrtcPtr crtc;
+        RROutputPtr output;
+
+        snprintf(name, sizeof name, "head-%d", i + 1);
+        if (!(crtc = RRCrtcCreate(pScreen, NULL)))
+            return FALSE;
+        if (!RRCrtcGammaSetSize(crtc, 256))
+            return FALSE;
+        if (!(output = RROutputCreate(pScreen, name, strlen(name) + 1, NULL)))
+            return FALSE;
+        lorieCrtcs[i] = crtc;
+        lorieOutputs[i] = output;
+    }
+
+    lorieNumHeads = 0;
     return TRUE;
 }
 
@@ -669,29 +679,63 @@ static Bool lorieScreenInit(ScreenPtr pScreen, unused int argc, unused char **ar
     return TRUE;
 }                               /* end lorieScreenInit */
 
-void lorieConfigureNotify(int width, int height, int framerate, size_t name_size, char* name) {
+void lorieConfigureNotify(int width, int height, int framerate, int monitors, size_t name_size, char* name) {
     ScreenPtr pScreen = pScreenPtr;
-    RROutputPtr output = RRFirstOutput(pScreen);
+    int n, i;
     framerate = framerate ? framerate : 30;
 
-    if (output && name) {
+    if (monitors < 1) monitors = 1;
+    if (monitors > LORIE_MAX_HEADS) monitors = LORIE_MAX_HEADS;
+    n = monitors;
+
+    if (name) {
         // We should save this name in pvfb to make sure the name will be restored in the case if the server is being reset.
         memset(pvfb->root.name, 0, 1024);
-        memset(output->name, 0, 1024);
         strncpy(pvfb->root.name, name, name_size < 1024 ? name_size : 1024);
-        strncpy(output->name, name, name_size < 1024 ? name_size : 1024);
-        output->name[1023] = '\0';
-        output->nameLength = strlen(output->name);
+        pvfb->root.name[1023] = '\0';
     }
 
-    if (output && width && height && (pScreen->width != width || pScreen->height != height || pvfb->root.framerate != framerate)) {
+    if (width && height && (pScreen->width != width || pScreen->height != height || pvfb->root.framerate != framerate || lorieNumHeads != n)) {
         CARD32 mmWidth, mmHeight;
         RRModePtr mode = lorieCvt(width, height, framerate);
+        Bool portrait = height > width;
+        int headW = portrait ? width : width / n;
+        int headH = portrait ? height / n : height;
+
         mmWidth = ((double) (mode->mode.width)) * 25.4 / monitorResolution;
         mmHeight = ((double) (mode->mode.width)) * 25.4 / monitorResolution;
-        RROutputSetModes(output, &mode, 1, 0);
-        RRCrtcNotify(RRFirstEnabledCrtc(pScreen), mode, 0, 0, RR_Rotate_0, NULL, 1, &output);
         RRScreenSizeSet(pScreen, mode->mode.width, mode->mode.height, mmWidth, mmHeight);
+
+        for (i = 0; i < LORIE_MAX_HEADS; i++) {
+            RROutputPtr output = lorieOutputs[i];
+            RRCrtcPtr crtc = lorieCrtcs[i];
+            if (!output || !crtc)
+                continue;
+            if (i < n) {
+                char headName[1056];
+                RRModePtr headMode = lorieCvt(headW, headH, framerate);
+                int hx = portrait ? 0 : i * headW;
+                int hy = portrait ? i * headH : 0;
+                if (i == 0)
+                    snprintf(headName, sizeof headName, "%s", pvfb->root.name);
+                else
+                    snprintf(headName, sizeof headName, "%s-%d", pvfb->root.name, i + 1);
+                memset(output->name, 0, 1024);
+                strncpy(output->name, headName, 1023);
+                output->name[1023] = '\0';
+                output->nameLength = strlen(output->name);
+                RROutputSetClones(output, NULL, 0);
+                RROutputSetModes(output, &headMode, 1, 0);
+                RROutputSetCrtcs(output, &crtc, 1);
+                RROutputSetConnection(output, RR_Connected);
+                RRCrtcNotify(crtc, headMode, hx, hy, RR_Rotate_0, NULL, 1, &output);
+            } else if (i < lorieNumHeads) {
+                // Head was active before, disable it now.
+                RRCrtcNotify(crtc, NULL, 0, 0, RR_Rotate_0, NULL, 0, NULL);
+                RROutputSetConnection(output, RR_Disconnected);
+            }
+        }
+        lorieNumHeads = n;
 
         log(VERBOSE, "New reported framerate is %d", framerate);
         pvfb->root.framerate = framerate;

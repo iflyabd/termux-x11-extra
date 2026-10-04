@@ -70,6 +70,13 @@
             app:defaultValue="auto"
             app:entries="@array/forceOrientationVariants"
             app:entryValues="@array/forceOrientationVariants" />
+        <ListPreference
+            app:key="displaySplit"
+            app:title="@string/lorie_pref_displaySplit"
+            app:summary="@string/lorie_pref_displaySplit_summary"
+            app:defaultValue="1"
+            app:entries="@array/displaySplitEntries"
+            app:entryValues="@array/displaySplitValues" />
         <SwitchPreferenceCompat
             app:key="hideCutout"
             app:title="@string/lorie_pref_hideCutout"
@@ -135,6 +142,21 @@
         <SwitchPreferenceCompat
             app:key="tapToMove"
             app:title="@string/lorie_pref_tapToMove"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
+            app:key="holdToScrollVertical"
+            app:title="@string/lorie_pref_holdToScrollVertical"
+            app:summary="@string/lorie_pref_holdToScrollVertical_summary"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
+            app:key="holdToScrollHorizontal"
+            app:title="@string/lorie_pref_holdToScrollHorizontal"
+            app:summary="@string/lorie_pref_holdToScrollHorizontal_summary"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
+            app:key="invertHoldToScroll"
+            app:title="@string/lorie_pref_invertHoldToScroll"
+            app:summary="@string/lorie_pref_invertHoldToScroll_summary"
             app:defaultValue="false" />
     </PreferenceScreen>
 

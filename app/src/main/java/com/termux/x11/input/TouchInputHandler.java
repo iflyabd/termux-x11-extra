@@ -428,6 +428,9 @@ public class TouchInputHandler {
     public void reloadPreferences(Prefs p) {
         setInputMode(Integer.parseInt(p.touchMode.get()));
         mInjector.tapToMove = p.tapToMove.get();
+        mInjector.holdToScrollVertical = p.holdToScrollVertical.get();
+        mInjector.holdToScrollHorizontal = p.holdToScrollHorizontal.get();
+        mInjector.invertHoldToScroll = p.invertHoldToScroll.get();
         mInjector.preferScancodes = p.preferScancodes.get();
         mInjector.pointerCapture = p.pointerCapture.get();
         mInjector.scaleTouchpad = p.scaleTouchpad.get() &&
@@ -680,6 +683,22 @@ public class TouchInputHandler {
 
             if (pointerCount != 1 || mSuppressCursorMovement)
                 return false;
+
+            // Tap-and-hold to scroll: after a long-press / tap-hold (mIsDragging),
+            // convert finger movement into wheel events on the enabled axes.
+            // Same distance convention as two-finger scroll; invert flag negates both.
+            if (mIsDragging && (mInjector.holdToScrollVertical || mInjector.holdToScrollHorizontal)) {
+                float scrollX = mInjector.holdToScrollHorizontal ? distanceX : 0;
+                float scrollY = mInjector.holdToScrollVertical ? distanceY : 0;
+                if (mInjector.invertHoldToScroll) {
+                    scrollX = -scrollX;
+                    scrollY = -scrollY;
+                }
+                if (scrollX != 0 || scrollY != 0) {
+                    mInjector.sendMouseWheelEvent(scrollX, scrollY);
+                    return true;
+                }
+            }
 
             if (mInputStrategy instanceof InputStrategyInterface.TrackpadInputStrategy) {
                 if (mInjector.scaleTouchpad) {

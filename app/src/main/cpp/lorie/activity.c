@@ -282,10 +282,12 @@ static void sendClipboardEvent(JNIEnv *env, __unused jobject thiz, jbyteArray te
     }
 }
 
-static void sendWindowChange(__unused JNIEnv* env, __unused jobject cls, jint width, jint height, jint framerate, jstring jname) {
+static void sendWindowChange(__unused JNIEnv* env, __unused jobject cls, jint width, jint height, jint framerate, jint monitors, jstring jname) {
     if (conn_fd != -1) {
         const char *name = (!jname || width <= 0 || height <= 0) ? NULL : (*env)->GetStringUTFChars(env, jname, JNI_FALSE);
-        lorieEvent e = { .screenSize = { .t = EVENT_SCREEN_SIZE, .width = width, .height = height, .framerate = framerate, .name_size = (name ? strlen(name) : 0) } };
+        if (monitors < 1) monitors = 1;
+        if (monitors > 3) monitors = 3;
+        lorieEvent e = { .screenSize = { .t = EVENT_SCREEN_SIZE, .width = width, .height = height, .framerate = framerate, .monitors = monitors, .name_size = (name ? strlen(name) : 0) } };
         write(conn_fd, &e, sizeof(e));
         if (name) {
             write(conn_fd, name, strlen(name));
@@ -430,7 +432,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, __unused void *reserved) {
             {"setClipboardSyncEnabled", "(ZZ)V", (void *)&setClipboardSyncEnabled},
             {"sendClipboardAnnounce", "()V", (void *)&sendClipboardAnnounce},
             {"sendClipboardEvent", "([B)V", (void *)&sendClipboardEvent},
-            {"sendWindowChange", "(IIILjava/lang/String;)V", (void *)&sendWindowChange},
+            {"sendWindowChange", "(IIIILjava/lang/String;)V", (void *)&sendWindowChange},
             {"sendMouseEvent", "(FFIZZ)V", (void *)&sendMouseEvent},
             {"sendTouchEvent", "(IIII)V", (void *)&sendTouchEvent},
             {"sendStylusEvent", "(FFIIIIIZZ)V", (void *)&sendStylusEvent},

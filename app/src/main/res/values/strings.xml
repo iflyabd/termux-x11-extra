@@ -48,6 +48,8 @@ E.g. <b>META</b> for <i>META key</i>, \n
     <string name="lorie_pref_fullscreen">Fullscreen</string>
     <string name="lorie_pref_fullscreen_summary">Toggle immersive mode in your device display</string>
     <string name="lorie_pref_forceOrientation">Screen orientation</string>
+    <string name="lorie_pref_displaySplit">Split display (XRandR heads)</string>
+    <string name="lorie_pref_displaySplit_summary">Show 1, 2 or 3 virtual displays: side-by-side in landscape, stacked in portrait</string>
     <string name="lorie_pref_hideCutout">Hide display cutout (if any)</string>
     <string name="lorie_pref_keepScreenOn">Keep Screen On</string>
 
@@ -66,6 +68,12 @@ E.g. <b>META</b> for <i>META key</i>, \n
     <string name="lorie_pref_transformCapturedPointer">Transform captured pointer movements</string>
     <string name="lorie_pref_capturedPointerSpeedFactor">Captured pointer speed factor, %</string>
     <string name="lorie_pref_tapToMove">Enable tap-to-move for touchpads</string>
+    <string name="lorie_pref_holdToScrollVertical">Tap-hold to scroll up/down</string>
+    <string name="lorie_pref_holdToScrollVertical_summary">Tap and hold, then move up or down to scroll vertically</string>
+    <string name="lorie_pref_holdToScrollHorizontal">Tap-hold to scroll left/right</string>
+    <string name="lorie_pref_holdToScrollHorizontal_summary">Tap and hold, then move left or right to scroll horizontally</string>
+    <string name="lorie_pref_invertHoldToScroll">Invert tap-hold scroll</string>
+    <string name="lorie_pref_invertHoldToScroll_summary">Invert scroll direction for tap-hold scrolling (both axes)</string>
 
     <string name="lorie_pref_showAdditionalKbd">Show additional keyboard</string>
     <string name="lorie_pref_showAdditionalKbd_summary">Show keyboard with additional keys.</string>
@@ -134,6 +142,7 @@ E.g. <b>META</b> for <i>META key</i>, \n
     <string name="pref_PIP">PIP mode</string>
     <string name="pref_fullscreen">Fullscreen</string>
     <string name="pref_forceOrientation">Screen orientation</string>
+    <string name="pref_displaySplit">Split display (XRandR heads)</string>
     <string name="pref_hideCutout">Hide display cutout (if any)</string>
     <string name="pref_keepScreenOn">Keep Screen On</string>
     <!-- Pointer screen -->
@@ -147,6 +156,9 @@ E.g. <b>META</b> for <i>META key</i>, \n
     <string name="pref_transformCapturedPointer">Transform captured pointer movements</string>
     <string name="pref_capturedPointerSpeedFactor">Captured pointer speed factor, %</string>
     <string name="pref_tapToMove">Enable tap-to-move for touchpads</string>
+    <string name="pref_holdToScrollVertical">Tap-hold to scroll up/down</string>
+    <string name="pref_holdToScrollHorizontal">Tap-hold to scroll left/right</string>
+    <string name="pref_invertHoldToScroll">Invert tap-hold scroll</string>
     <!-- Keyboard screen -->
     <string name="pref_showAdditionalKbd">Show additional keyboard</string>
     <string name="pref_showIMEWhileExternalConnected">Show IME with external keyboard</string>
