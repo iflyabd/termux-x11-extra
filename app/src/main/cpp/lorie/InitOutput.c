@@ -600,17 +600,21 @@ static Bool lorieRandRInit(ScreenPtr pScreen) {
     RRScreenSetSizeRange(pScreen, 1, 1, 32767, 32767);
 
     for (i = 0; i < LORIE_MAX_HEADS; i++) {
-        char name[64];
+        /* NOTE: the name buffer must stay 1024 bytes: lorieConfigureNotify
+         * renames outputs in place with memset/strncpy over 1024 bytes,
+         * same as the original single-output code did. */
+        static char name[LORIE_MAX_HEADS][1024];
         RRCrtcPtr crtc;
         RROutputPtr output;
 
-        snprintf(name, sizeof name, "head-%d", i + 1);
+        snprintf(name[i], sizeof name[i], "head-%d", i + 1);
         if (!(crtc = RRCrtcCreate(pScreen, NULL)))
             return FALSE;
         if (!RRCrtcGammaSetSize(crtc, 256))
             return FALSE;
-        if (!(output = RROutputCreate(pScreen, name, strlen(name) + 1, NULL)))
+        if (!(output = RROutputCreate(pScreen, name[i], sizeof name[i], NULL)))
             return FALSE;
+        output->nameLength = strlen(output->name);
         lorieCrtcs[i] = crtc;
         lorieOutputs[i] = output;
     }
