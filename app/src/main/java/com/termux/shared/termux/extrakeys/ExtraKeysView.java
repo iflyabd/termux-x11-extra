@@ -107,8 +107,8 @@ public final class ExtraKeysView extends GridLayout {
 
     /** Defines the default value for {@link #mButtonTextColor} */
     public static final int DEFAULT_BUTTON_TEXT_COLOR = 0xFFFFFFFF;
-    /** Defines the default value for {@link #mButtonActiveTextColor} */
-    public static final int DEFAULT_BUTTON_ACTIVE_TEXT_COLOR = 0xFF80DEEA;
+    /** Defines the default value for {@link #mButtonActiveTextColor} - RED like Termux FDroid (was cyan 0xFF80DEEA) */
+    public static final int DEFAULT_BUTTON_ACTIVE_TEXT_COLOR = 0xFFFF0000;
     /** Defines the default value for {@link #mButtonBackgroundColor} */
     public static final int DEFAULT_BUTTON_BACKGROUND_COLOR = 0x00000000;
     /** Defines the default value for {@link #mButtonActiveBackgroundColor} */

@@ -87,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
 
     private final GamepadIpc.Listener ipcListener = new GamepadIpc.Listener() {
         @Override public int onGetGamepadRequested() {
+            // Lasă ambele să se atașeze dacă vor
             return GamepadIpc.FLAG_INPUT_TYPE_XINPUT | GamepadIpc.FLAG_INPUT_TYPE_DINPUT;
         }
         @Override public void onRumble(int l, int r, int durMs) {
@@ -259,8 +260,11 @@ public class MainActivity extends AppCompatActivity {
             final boolean hasGp   = (src & (InputDevice.SOURCE_GAMEPAD | InputDevice.SOURCE_JOYSTICK)) != 0;
             final boolean hasDpad = (src & InputDevice.SOURCE_DPAD) != 0;
 
+            // chei „clar” de gamepad (A/B/X/Y/L1/R1/etc)
             final boolean isGpBtn = KeyEvent.isGamepadButton(k);
 
+            // DPAD: tratează ca gamepad doar dacă vine de pe un device care NU e și tastatură
+            // (multe controllere au GAMEPAD/JOYSTICK/DPAD dar NU KEYBOARD; tastaturile reale au KEYBOARD)
             final boolean isDpadKey =
                     (k == KeyEvent.KEYCODE_DPAD_UP
                             || k == KeyEvent.KEYCODE_DPAD_RIGHT
@@ -284,8 +288,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
+            // altfel e tastatură (inclusiv săgeți de la tastatură reală) -> lasă pe fluxul normal
             boolean result = mInputHandler.sendKeyEvent(e);
 
+            // nu „șterge” special keys decât pentru intrări de la tastatură
             if (useTermuxEKBarBehaviour && mExtraKeys != null && hasKb)
                 mExtraKeys.unsetSpecialKeys();
 
@@ -440,20 +446,21 @@ public class MainActivity extends AppCompatActivity {
 
         GamepadIpc.HandshakeFormat fmt;
         switch ((prefs.gamepadInputType.get()+"").toLowerCase()) {
-            case "xinput": fmt = GamepadIpc.HandshakeFormat.NEW;    break;
-            case "dinput": fmt = GamepadIpc.HandshakeFormat.LEGACY; break;
-            case "all":    fmt = GamepadIpc.HandshakeFormat.BOTH;   break;
-            case "none":   fmt = GamepadIpc.HandshakeFormat.NONE;   break;
+            case "xinput": fmt = GamepadIpc.HandshakeFormat.NEW;    break;   // doar XInput
+            case "dinput": fmt = GamepadIpc.HandshakeFormat.LEGACY; break;   // doar DInput (legacy)
+            case "all":    fmt = GamepadIpc.HandshakeFormat.BOTH;   break;   // auto: răspunde în formatul cerut
+            case "none":   fmt = GamepadIpc.HandshakeFormat.NONE;   break;   // nu răspunde deloc
             default:       fmt = GamepadIpc.HandshakeFormat.BOTH;   break;
         }
 
+        // oprește instanța veche
         try { if (ipc != null) ipc.sendRelease(); } catch (Throwable ignored) {}
         try { if (ipc != null) ipc.stop(); } catch (Throwable ignored) {}
 
         ipc = new GamepadIpc(
                 host,
-                /* clientPort = */ base,
-                /* serverPort = */ base + 1,
+                /* clientPort = */ base,         // Android ascultă aici
+                /* serverPort = */ base + 1,     // opțional/fallback
                 gpId,
                 new GamepadIpc.Listener() {
                     @Override public int onGetGamepadRequested() {
@@ -461,10 +468,12 @@ public class MainActivity extends AppCompatActivity {
                             case "xinput":
                                 return GamepadIpc.FLAG_INPUT_TYPE_XINPUT;
                             case "dinput":
+                                // DInput, cu mapare XInput ca să ai butoanele la locul lor
                                 return GamepadIpc.FLAG_INPUT_TYPE_DINPUT
                                         | GamepadIpc.FLAG_DINPUT_MAPPER_XINPUT;
                             case "all":
                             default:
+                                // Trimite ambele: XInput + DInput (mapper XInput)
                                 return GamepadIpc.FLAG_INPUT_TYPE_XINPUT
                                         | GamepadIpc.FLAG_INPUT_TYPE_DINPUT
                                         | GamepadIpc.FLAG_DINPUT_MAPPER_XINPUT;
@@ -484,11 +493,22 @@ public class MainActivity extends AppCompatActivity {
         ipc.setName(currGpName);
         ipc.start();
 
+        // inițializează handler-ul de gamepad
         gamepadHandler = new GamepadInputHandler(this, lorieView, ipc, gpState, prefs.gamepadForwardX11.get());
         gamepadHandler.reloadPrefs(prefs);
         gamepadHandler.setupGamepadInput();
     }
 
+    private void stopIpc() {
+        try { if (gamepadHandler != null) gamepadHandler.cancelRumble(); } catch (Throwable ignored) {}
+        try { if (ipc != null) ipc.sendRelease(); } catch (Throwable ignored) {}
+        try { if (ipc != null) ipc.stop(); } catch (Throwable ignored) {}
+        ipc = null; gamepadHandler = null;
+    }
+
+    private static int safeParseInt(String s, int def) {
+        try { return Integer.parseInt(s); } catch (Exception ignored) { return def; }
+    }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -517,6 +537,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent e) {
+        // Lasă sistemul să livreze evenimentul normal (IME, views etc).
+        // Noi prindem în onKeyDown/onKeyUp mai jos.
         return super.dispatchKeyEvent(e);
     }
 
@@ -544,9 +566,10 @@ public class MainActivity extends AppCompatActivity {
                 buttonLayer.removeView(view);
             }
             if (LorieView.connected()){
-                SharedPreferences prefs = getSharedPreferences(AppConstants.PREFS_BUTTON_PREFS, MODE_PRIVATE);
+                SharedPreferences prefs = getSharedPreferences("button_prefs", MODE_PRIVATE);
+                VirtualKeyMapperActivity.ensureBuiltInPresetsExist(prefs);
                 String screenID = getDisplayId(this);
-                String lastPreset = prefs.getString(AppConstants.PREFS_LAST_USED_PRESET_PREFIX + screenID, AppConstants.PRESET_EMPTY);
+                String lastPreset = prefs.getString("last_used_preset_" + screenID, VirtualKeyMapperActivity.defaultPresetForDisplay(screenID));
 
                 virtualKeyHandler = new VirtualKeyHandler(this, getLorieView(), ipc, gpState, gamepadHandler);
                 VirtualKeyMapperActivity virtualKeyMapperActivity = new VirtualKeyMapperActivity();
@@ -885,12 +908,13 @@ public class MainActivity extends AppCompatActivity {
     void onPreferencesChanged(String key) {
         if ("additionalKbdVisible".equals(key)) return;
 
-        if (isBooting) return;
+        if (isBooting) return; // <- important
         LorieView lv = getLorieView();
-        if (lv == null) return;
+        if (lv == null) return; // protecție
 
         handler.removeCallbacks(this::onPreferencesChangedCallback);
         handler.postDelayed(this::onPreferencesChangedCallback, 100);
+        // mută reload-ul gamepad aici, după debounce-ul grafic:
         handler.post(() -> maybeReloadGamepad(lv));
     }
 

@@ -3,26 +3,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- MAIN -->
-    <PreferenceScreen app:key="main" app:title="@string/pref_main">
-        <Preference app:title="@string/pref_output"  app:fragment="output" />
-        <Preference app:title="@string/pref_pointer" app:fragment="pointer" />
-        <Preference app:title="@string/pref_kbd"     app:fragment="kbd" />
-        <Preference app:title="Controller"           app:fragment="controller" />
-        <Preference app:title="@string/pref_other"   app:fragment="other" />
-        <Preference app:key="version" app:title="@string/pref_version" />
+    <PreferenceScreen app:key="main" app:title="@string/lorie_pref_main">
+        <Preference app:title="@string/lorie_pref_output" app:fragment="output" />
+        <Preference app:title="@string/lorie_pref_pointer" app:fragment="pointer" />
+        <Preference app:title="@string/lorie_pref_kbd" app:fragment="kbd" />
+        <Preference app:title="@string/lorie_pref_other" app:fragment="other" />
+        <Preference app:key="version" app:title="@string/lorie_pref_version" />
     </PreferenceScreen>
 
-    <!-- OUTPUT -->
-    <PreferenceScreen app:key="output" app:title="Output">
+    <PreferenceScreen app:key="output" app:title="@string/lorie_pref_output">
         <ListPreference
             app:key="displayResolutionMode"
+            app:title="@string/lorie_pref_displayResolutionMode"
             app:defaultValue="native"
             app:entries="@array/displayResolutionVariants"
-            app:entryValues="@array/displayResolutionVariants"
-            app:useSimpleSummaryProvider="true" />
+            app:entryValues="@array/displayResolutionVariants" />
         <SeekBarPreference
             app:key="displayScale"
+            app:title="@string/lorie_pref_displayScale"
             app:defaultValue="100"
             app:min="30"
             android:max="300"
@@ -31,315 +29,351 @@
             app:updatesContinuously="true" />
         <ListPreference
             app:key="displayResolutionExact"
+            app:title="@string/lorie_pref_displayResolutionExact"
             app:defaultValue="1280x1024"
             app:entries="@array/displayResolution"
             app:entryValues="@array/displayResolution"
-            tools:ignore="DuplicateSpeakableTextCheck"
-            app:useSimpleSummaryProvider="true" />
+            tools:ignore="DuplicateSpeakableTextCheck" />
         <EditTextPreference
             app:key="displayResolutionCustom"
+            app:title="@string/lorie_pref_displayResolutionCustom"
             app:defaultValue="1280x1024"
             app:useSimpleSummaryProvider="true" />
-        <SwitchPreferenceCompat app:key="adjustResolution" app:defaultValue="false" app:title="Adjust resolution automatically" />
-        <SwitchPreferenceCompat app:key="displayStretch"   app:defaultValue="false" app:title="Stretch to fill" />
-        <SwitchPreferenceCompat app:key="Reseed"            app:defaultValue="true"  app:title="Reseed RNG at start" />
-        <SwitchPreferenceCompat app:key="PIP"               app:defaultValue="false" app:title="Picture-in-Picture mode" />
-        <SwitchPreferenceCompat app:key="fullscreen"        app:defaultValue="false" app:title="Fullscreen" />
+        <SwitchPreferenceCompat
+            app:key="adjustResolution"
+            app:title="@string/lorie_pref_adjustResolution"
+            app:summary="@string/pref_summary_requiresExactOrCustom"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
+            app:key="displayStretch"
+            app:title="@string/lorie_pref_displayStretch"
+            app:summary="@string/pref_summary_requiresExactOrCustom"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
+            app:key="Reseed"
+            app:title="@string/lorie_pref_Reseed"
+            app:summary="@string/lorie_pref_Reseed_summary"
+            app:defaultValue="true" />
+        <SwitchPreferenceCompat
+            app:key="PIP"
+            app:title="@string/lorie_pref_PIP"
+            app:summary="@string/lorie_pref_PIP_summary"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
+            app:key="fullscreen"
+            app:title="@string/lorie_pref_fullscreen"
+            app:summary="@string/lorie_pref_fullscreen_summary"
+            app:defaultValue="false" />
         <ListPreference
             app:key="forceOrientation"
+            app:title="@string/lorie_pref_forceOrientation"
             app:defaultValue="auto"
             app:entries="@array/forceOrientationVariants"
-            app:entryValues="@array/forceOrientationVariants"
-            app:title="Force orientation"
-            app:useSimpleSummaryProvider="true" />
-        <SwitchPreferenceCompat app:key="hideCutout"   app:defaultValue="false" app:title="Hide display cutout" />
-        <SwitchPreferenceCompat app:key="keepScreenOn" app:defaultValue="true"  app:title="Keep screen on" />
+            app:entryValues="@array/forceOrientationVariants" />
+        <SwitchPreferenceCompat
+            app:key="hideCutout"
+            app:title="@string/lorie_pref_hideCutout"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
+            app:key="keepScreenOn"
+            app:title="@string/lorie_pref_keepScreenOn"
+            app:defaultValue="true" />
     </PreferenceScreen>
 
-    <!-- POINTER -->
-    <PreferenceScreen app:key="pointer" app:title="Pointer">
+    <PreferenceScreen app:key="pointer" app:title="@string/lorie_pref_pointer">
         <ListPreference
             app:key="touchMode"
+            app:title="@string/lorie_pref_touchMode"
             app:defaultValue="1"
             app:entries="@array/touchscreenInputModesEntries"
-            app:entryValues="@array/touchscreenInputModesValues"
-            app:title="Touch input mode"
-            app:useSimpleSummaryProvider="true" />
-        <SwitchPreferenceCompat app:key="scaleTouchpad" app:defaultValue="true"  app:title="Scale touchpad movement" />
-        <SwitchPreferenceCompat app:key="showStylusClickOverride" app:defaultValue="false" app:title="Show stylus-click override" />
-        <SwitchPreferenceCompat app:key="stylusIsMouse" app:defaultValue="false" app:title="Treat stylus as mouse" />
-        <SwitchPreferenceCompat app:key="stylusButtonContactModifierMode" app:defaultValue="false" app:title="Stylus button = contact modifier" />
-        <SwitchPreferenceCompat app:key="showMouseHelper" app:defaultValue="false" app:title="Show mouse helper" />
-        <SwitchPreferenceCompat app:key="pointerCapture" app:defaultValue="false" app:title="Capture pointer" />
+            app:entryValues="@array/touchscreenInputModesValues" />
+        <SwitchPreferenceCompat
+            app:key="scaleTouchpad"
+            app:title="@string/lorie_pref_scaleTouchpad"
+            app:summary="@string/pref_summary_requiresTrackpadAndNative"
+            app:defaultValue="true" />
+        <SwitchPreferenceCompat
+            app:key="showStylusClickOverride"
+            app:title="@string/lorie_pref_showStylusClickOverride"
+            app:summary="@string/lorie_pref_showStylusClickOverride_summary"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
+            app:key="stylusIsMouse"
+            app:title="@string/lorie_pref_stylusIsMouse"
+            app:summary="@string/lorie_pref_stylusIsMouse_summary"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
+            app:key="stylusButtonContactModifierMode"
+            app:title="@string/lorie_pref_stylusButtonContactModifierMode"
+            app:summary="@string/lorie_pref_stylusButtonContactModifierMode_summary"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
+            app:key="showMouseHelper"
+            app:title="@string/lorie_pref_showMouseHelper"
+            app:summary="@string/lorie_pref_showMouseHelper_summary"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
+            app:key="pointerCapture"
+            app:title="@string/lorie_pref_pointerCapture"
+            app:summary="@string/lorie_pref_pointerCapture_summary"
+            app:defaultValue="false" />
         <ListPreference
             app:key="transformCapturedPointer"
+            app:title="@string/lorie_pref_transformCapturedPointer"
             app:defaultValue="no"
             app:entries="@array/transformCapturedPointerEntries"
-            app:entryValues="@array/transformCapturedPointerValues"
-            app:title="Captured pointer transform"
-            app:useSimpleSummaryProvider="true" />
+            app:entryValues="@array/transformCapturedPointerValues" />
         <SeekBarPreference
             app:key="capturedPointerSpeedFactor"
+            app:title="@string/lorie_pref_capturedPointerSpeedFactor"
             app:defaultValue="100"
             app:min="1"
             android:max="300"
             app:seekBarIncrement="1"
             app:showSeekBarValue="true"
-            app:updatesContinuously="true"
-            app:title="Captured pointer speed factor" />
-        <SwitchPreferenceCompat app:key="tapToMove" app:defaultValue="false" app:title="Tap to move (trackpad mode)" />
+            app:updatesContinuously="true" />
+        <SwitchPreferenceCompat
+            app:key="tapToMove"
+            app:title="@string/lorie_pref_tapToMove"
+            app:defaultValue="false" />
     </PreferenceScreen>
 
-    <!-- KEYBOARD -->
-    <PreferenceScreen app:key="kbd" app:title="Keyboard">
-        <SwitchPreferenceCompat app:key="showAdditionalKbd" app:defaultValue="true"  app:title="Show extra key bar" />
-        <SwitchPreferenceCompat app:key="additionalKbdVisible" app:defaultValue="true" app:isPreferenceVisible="false" app:title="Extra key bar visible" />
-        <SwitchPreferenceCompat app:key="showIMEWhileExternalConnected" app:defaultValue="true" app:title="Show IME with external keyboard" />
-        <SwitchPreferenceCompat app:key="preferScancodes" app:defaultValue="false" app:title="Prefer scancodes" />
-        <SwitchPreferenceCompat app:key="hardwareKbdScancodesWorkaround" app:defaultValue="true" app:title="Hardware keyboard scancode workaround" />
-        <SwitchPreferenceCompat app:key="dexMetaKeyCapture" app:defaultValue="false" app:title="Capture DeX Meta key" />
-        <Preference app:key="enableAccessibilityService" app:title="Open Accessibility settings">
-            <intent android:action="android.settings.ACCESSIBILITY_SETTINGS" />
+    <PreferenceScreen app:key="kbd" app:title="@string/lorie_pref_kbd">
+        <SwitchPreferenceCompat
+            app:key="showAdditionalKbd"
+            app:title="@string/lorie_pref_showAdditionalKbd"
+            app:summary="@string/lorie_pref_showAdditionalKbd_summary"
+            app:defaultValue="true" />
+        <!-- this preference should be a part of `Prefs` but should not appear in PreferenceScreen -->
+        <SwitchPreferenceCompat
+            app:key="additionalKbdVisible"
+            app:defaultValue="true"
+            app:isPreferenceVisible="false" />
+        <SwitchPreferenceCompat
+            app:key="showIMEWhileExternalConnected"
+            app:title="@string/lorie_pref_showIMEWhileExternalConnected"
+            app:summary="@string/lorie_pref_showIMEWhileExternalConnected_summary"
+            app:defaultValue="true" />
+        <SwitchPreferenceCompat
+            app:key="preferScancodes"
+            app:title="@string/lorie_pref_preferScancodes"
+            app:summary="@string/lorie_pref_preferScancodes_summary"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
+            app:key="hardwareKbdScancodesWorkaround"
+            app:title="@string/lorie_pref_hardwareKbdScancodesWorkaround"
+            app:summary="@string/lorie_pref_hardwareKbdScancodesWorkaround_summary"
+            app:defaultValue="true" />
+        <SwitchPreferenceCompat
+            app:key="dexMetaKeyCapture"
+            app:title="@string/lorie_pref_dexMetaKeyCapture"
+            app:summary="@string/lorie_pref_dexMetaKeyCapture_summary"
+            app:defaultValue="false" />
+        <Preference
+            app:key="enableAccessibilityService"
+            app:title="@string/lorie_pref_enableAccessibilityService"
+            app:summary="@string/lorie_pref_enableAccessibilityService_summary">
+            <intent android:action="android.settings.ACCESSIBILITY_SETTINGS"/>
         </Preference>
-        <SwitchPreferenceCompat app:key="enableAccessibilityServiceAutomatically" app:defaultValue="false" app:title="Enable accessibility service automatically" />
-        <SwitchPreferenceCompat app:key="pauseKeyInterceptingWithEsc" app:defaultValue="false" app:title="Pause key intercepting with Esc" />
-        <SwitchPreferenceCompat app:key="filterOutWinkey" app:defaultValue="false" app:title="Filter out Win key" />
-        <SwitchPreferenceCompat app:key="enforceCharBasedInput" app:defaultValue="false" app:title="Force character-based input" />
+        <SwitchPreferenceCompat
+            app:key="enableAccessibilityServiceAutomatically"
+            app:title="@string/lorie_pref_enableAccessibilityServiceAutomatically"
+            app:summary="@string/lorie_pref_enableAccessibilityServiceAutomatically_summary"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
+            app:key="pauseKeyInterceptingWithEsc"
+            app:title="@string/lorie_pref_pauseKeyInterceptingWithEsc"
+            app:summary="@string/pref_summary_requiresIntercepting"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
+            app:key="filterOutWinkey"
+            app:title="@string/lorie_pref_filterOutWinkey"
+            app:summary="@string/lorie_pref_filterOutWinkey_summary"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
+            app:key="enforceCharBasedInput"
+            app:title="@string/lorie_pref_enforceCharBasedInput"
+            app:summary="@string/lorie_pref_enforceCharBasedInput_summary"
+            app:defaultValue="false" />
     </PreferenceScreen>
 
-    <!-- OTHER -->
-    <PreferenceScreen app:key="other" app:title="Other">
-        <SwitchPreferenceCompat app:key="clipboardEnable" app:defaultValue="true" app:title="Enable clipboard sync" />
-        <Preference app:key="requestNotificationPermission" app:title="Request notification permission" />
-        <Preference app:key="configureResponseToUserActions" app:fragment="userActions" app:title="Response to user actions" />
-        <SwitchPreferenceCompat app:key="storeSecondaryDisplayPreferencesSeparately" app:defaultValue="false" app:title="Store secondary display prefs separately" />
+    <PreferenceScreen app:key="other" app:title="@string/lorie_pref_other">
+        <SwitchPreferenceCompat
+            app:key="clipboardEnable"
+            app:title="@string/lorie_pref_clipboardEnable"
+            app:defaultValue="true" />
+        <Preference
+            app:key="requestNotificationPermission"
+            app:title="@string/lorie_pref_requestNotificationPermission" />
+        <Preference
+            app:key="configureResponseToUserActions"
+            app:title="@string/lorie_pref_configureResponseToUserActions"
+            app:fragment="userActions" />
+        <SwitchPreferenceCompat
+            app:key="storeSecondaryDisplayPreferencesSeparately"
+            app:title="@string/lorie_pref_storeSecondaryDisplayPreferencesSeparately"
+            app:summary="@string/lorie_pref_storeSecondaryDisplayPreferencesSeparately_summary"
+            app:defaultValue="false" />
     </PreferenceScreen>
 
-    <!-- EXTRA KEYS BAR -->
-    <PreferenceScreen app:key="ekbar" app:title="Extra Keys Bar">
-        <SwitchPreferenceCompat app:key="adjustHeightForEK" app:defaultValue="false" app:title="Adjust height for extra keys" />
-        <SwitchPreferenceCompat app:key="useTermuxEKBarBehaviour" app:defaultValue="false" app:title="Use Termux extra-keys behaviour" />
+    <PreferenceScreen app:key="ekbar" app:title="@string/lorie_pref_ekbar">
+        <SwitchPreferenceCompat
+            app:key="adjustHeightForEK"
+            app:title="@string/lorie_pref_adjustHeightForEK"
+            app:summary="@string/lorie_pref_adjustHeightForEK_summary"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
+            app:key="useTermuxEKBarBehaviour"
+            app:title="@string/lorie_pref_useTermuxEKBarBehaviour"
+            app:summary="@string/lorie_pref_useTermuxEKBarBehaviour_summary"
+            app:defaultValue="false" />
         <SeekBarPreference
             app:key="opacityEKBar"
+            app:title="@string/lorie_pref_opacityEKBar"
             app:defaultValue="100"
             app:min="1"
             android:max="100"
             app:seekBarIncrement="1"
             app:showSeekBarValue="true"
-            app:updatesContinuously="true"
-            app:title="Extra keys opacity (%)" />
-        <EditTextPreference app:key="extra_keys_config" app:title="Extra keys config" />
-        <Preference
-            android:key="editVirtualKeys"
-            android:title="Customize Virtual Keys"
-            android:summary="Map, resize, and position virtual keys on the screen."
-            android:onClick="openVirtualKeyMapper" />
-        <Preference
-            android:key="export_virtual_keys"
-            android:title="Export Virtual Key Preset"
-            android:summary="Save the current virtual key layout to a file"
-            android:onClick="onExportVirtualKeys" />
-        <Preference
-            android:key="import_virtual_keys"
-            android:title="Import Virtual Key Preset"
-            android:summary="Load a saved virtual key layout from a file"
-            android:onClick="onImportVirtualKeys" />
+            app:updatesContinuously="true" />
+        <EditTextPreference
+            app:key="extra_keys_config"
+            app:title="@string/lorie_pref_extra_keys_config" />
     </PreferenceScreen>
 
-    <!-- CONTROLLER -->
-    <PreferenceScreen app:key="controller" app:title="Controller">
-
+    <PreferenceScreen app:key="userActions" app:title="@string/lorie_pref_userActions">
         <ListPreference
-            app:key="gamepadInputType"
-            app:title="Input backend"
-            app:defaultValue="xinput"
-            app:entries="@array/gamepadInputTypeEntries"
-            app:entryValues="@array/gamepadInputTypeValues"
-            app:useSimpleSummaryProvider="true" />
-
+            app:key="swipeUpAction"
+            app:title="@string/lorie_pref_swipeUpAction"
+            app:defaultValue="no action"
+            app:entries="@array/userActionsValues"
+            app:entryValues="@array/userActionsValues" />
         <ListPreference
-            app:key="gamepadMode"
-            app:title="Mapping mode"
-            app:defaultValue="raw"
-            app:entries="@array/gamepadModeEntries"
-            app:entryValues="@array/gamepadModeValues"
-            app:useSimpleSummaryProvider="true" />
-
+            app:key="swipeDownAction"
+            app:title="@string/lorie_pref_swipeDownAction"
+            app:defaultValue="toggle additional key bar"
+            app:entries="@array/userActionsValues"
+            app:entryValues="@array/userActionsValues" />
         <ListPreference
-            app:key="gamepadVibrate"
-            app:title="Vibration"
-            app:defaultValue="off"
-            app:entries="@array/gamepadVibrateEntries"
-            app:entryValues="@array/gamepadVibrateValues"
+            app:key="volumeUpAction"
+            app:title="@string/lorie_pref_volumeUpAction"
+            app:defaultValue="no action"
+            app:entries="@array/userActionsVolumeUpValues"
+            app:entryValues="@array/userActionsVolumeUpValues" />
+        <ListPreference
+            app:key="volumeDownAction"
+            app:title="@string/lorie_pref_volumeDownAction"
+            app:defaultValue="no action"
+            app:entries="@array/userActionsVolumeDownValues"
+            app:entryValues="@array/userActionsVolumeDownValues" />
+        <ListPreference
+            app:key="backButtonAction"
+            app:title="@string/lorie_pref_backButtonAction"
+            app:defaultValue="toggle soft keyboard"
+            app:entries="@array/userActionsValues"
+            app:entryValues="@array/userActionsValues" />
+        <ListPreference
+            app:key="notificationTapAction"
+            app:title="@string/lorie_pref_notificationTapAction"
+            app:defaultValue="open preferences"
+            app:entries="@array/userActionsValues"
+            app:entryValues="@array/userActionsValues" />
+        <ListPreference
+            app:key="notificationButton0Action"
+            app:title="@string/lorie_pref_notificationButton0Action"
+            app:defaultValue="open preferences"
+            app:entries="@array/userActionsValues"
+            app:entryValues="@array/userActionsValues" />
+        <ListPreference
+            app:key="notificationButton1Action"
+            app:title="@string/lorie_pref_notificationButton1Action"
+            app:defaultValue="exit"
+            app:entries="@array/userActionsValues"
+            app:entryValues="@array/userActionsValues" />
+        <ListPreference
+            app:key="mediaKeysAction"
+            app:title="@string/lorie_pref_mediaKeysAction"
+            app:defaultValue="no action"
+            app:entries="@array/userActionsMediaKeyValues"
+            app:entryValues="@array/userActionsMediaKeyValues" />
+    </PreferenceScreen>
+
+    <PreferenceScreen app:key="gamepad" app:title="Gamepad IPC">
+        <EditTextPreference
+            app:key="gamepadHost"
+            app:title="Host IP Address"
+            app:summary="IP address for gamepad IPC connection"
+            app:defaultValue="127.0.0.1"
             app:useSimpleSummaryProvider="true" />
-
-        <SeekBarPreference
-            app:key="gamepadVibrateStrength"
-            app:title="Vibration strength"
-            app:defaultValue="255"
-            app:min="1"
-            android:max="255"
-            app:seekBarIncrement="5"
-            app:showSeekBarValue="true"
-            app:updatesContinuously="true" />
-
+        <EditTextPreference
+            app:key="gamepadPortRumble"
+            app:title="Port (Rumble)"
+            app:summary="UDP port for DLL ↔ Android communication"
+            app:defaultValue="4600"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:key="gamepadID"
+            app:title="Gamepad ID"
+            app:summary="Controller index (1-4)"
+            app:defaultValue="1"
+            app:useSimpleSummaryProvider="true" />
         <SeekBarPreference
             app:key="gamepadStateHz"
-            app:title="Polling rate (Hz)"
-            app:defaultValue="60"
+            app:title="Poll Rate (Hz)"
+            app:summary="Gamepad state polling frequency"
+            app:defaultValue="125"
             app:min="10"
             android:max="500"
             app:seekBarIncrement="5"
             app:showSeekBarValue="true"
             app:updatesContinuously="true" />
-
         <SwitchPreferenceCompat
             app:key="gamepadForwardX11"
-            app:title="Forward gamepad to X11"
-            app:defaultValue="true" />
-
+            app:title="Forward to X11"
+            app:summary="Forward gamepad events to the X11 server"
+            app:defaultValue="false" />
+        <ListPreference
+            app:key="gamepadInputType"
+            app:title="Input Type"
+            app:summary="Protocol used to send gamepad data"
+            app:defaultValue="xinput"
+            app:entries="@array/gamepadInputTypeEntries"
+            app:entryValues="@array/gamepadInputTypeValues" />
+        <ListPreference
+            app:key="gamepadMode"
+            app:title="Gamepad Mode"
+            app:summary="How gamepad inputs are mapped"
+            app:defaultValue="mapped"
+            app:entries="@array/gamepadModeEntries"
+            app:entryValues="@array/gamepadModeValues" />
+        <ListPreference
+            app:key="gamepadVibrate"
+            app:title="Vibration Mode"
+            app:summary="Rumble / haptic feedback source"
+            app:defaultValue="system"
+            app:entries="@array/gamepadVibrateEntries"
+            app:entryValues="@array/gamepadVibrateValues" />
+        <SeekBarPreference
+            app:key="gamepadVibrateStrength"
+            app:title="Vibration Strength"
+            app:summary="Intensity of haptic feedback (0 – 255)"
+            app:defaultValue="128"
+            app:min="0"
+            android:max="255"
+            app:seekBarIncrement="1"
+            app:showSeekBarValue="true"
+            app:updatesContinuously="true" />
         <EditTextPreference
             app:key="gamepadName"
-            app:title="Gamepad name"
+            app:title="Controller Name"
+            app:summary="Name reported to the host"
             app:defaultValue="Termux-X11 Pad"
             app:useSimpleSummaryProvider="true" />
-
-        <ListPreference
-            app:key="gamepadID"
-            app:title="Gamepad ID"
-            app:defaultValue="1"
-            app:entries="@array/gamepadIDs"
-            app:entryValues="@array/gamepadIDs"
-            app:useSimpleSummaryProvider="true" />
-
-        <EditTextPreference
-            app:key="gamepadHost"
-            app:title="Host"
-            app:defaultValue="127.0.0.1"
-            app:useSimpleSummaryProvider="true" />
-
-        <EditTextPreference
-            app:key="gamepadPortRumble"
-            app:title="Gamepad Port"
-            app:defaultValue="4600"
-            app:useSimpleSummaryProvider="true" />
-
         <PreferenceCategory
             app:key="keybinds_section"
             app:title="Key Bindings"
-            app:isPreferenceVisible="true">
-
-            <Preference
-                app:key="keybinds_open"
-                app:title="Open Key Bind Mapper"
-                app:summary="Create and edit key binding rules"
-                app:fragment="keybind_mapper_fragment" />
+            app:isPreferenceVisible="false">
         </PreferenceCategory>
-    </PreferenceScreen>
-
-    <!-- KEY BIND MAPPER -->
-    <PreferenceScreen
-        app:key="keybind_mapper_fragment"
-        app:title="Key Bind Mapper">
-
-        <ListPreference app:key="keybind_btn_a"  app:title="A"
-            app:defaultValue="none"
-            app:entries="@array/keybindOptionsEntries"
-            app:entryValues="@array/keybindOptionsValues"
-            app:useSimpleSummaryProvider="true" />
-        <ListPreference app:key="keybind_btn_b"  app:title="B"
-            app:defaultValue="none"
-            app:entries="@array/keybindOptionsEntries"
-            app:entryValues="@array/keybindOptionsValues"
-            app:useSimpleSummaryProvider="true" />
-        <ListPreference app:key="keybind_btn_x"  app:title="X"
-            app:defaultValue="none"
-            app:entries="@array/keybindOptionsEntries"
-            app:entryValues="@array/keybindOptionsValues"
-            app:useSimpleSummaryProvider="true" />
-        <ListPreference app:key="keybind_btn_y"  app:title="Y"
-            app:defaultValue="none"
-            app:entries="@array/keybindOptionsEntries"
-            app:entryValues="@array/keybindOptionsValues"
-            app:useSimpleSummaryProvider="true" />
-
-        <ListPreference app:key="keybind_btn_lb" app:title="LB"
-            app:defaultValue="none"
-            app:entries="@array/keybindOptionsEntries"
-            app:entryValues="@array/keybindOptionsValues"
-            app:useSimpleSummaryProvider="true" />
-        <ListPreference app:key="keybind_btn_rb" app:title="RB"
-            app:defaultValue="none"
-            app:entries="@array/keybindOptionsEntries"
-            app:entryValues="@array/keybindOptionsValues"
-            app:useSimpleSummaryProvider="true" />
-        <ListPreference app:key="keybind_btn_lt" app:title="LT (digital)"
-            app:defaultValue="none"
-            app:entries="@array/keybindOptionsEntries"
-            app:entryValues="@array/keybindOptionsValues"
-            app:useSimpleSummaryProvider="true" />
-        <ListPreference app:key="keybind_btn_rt" app:title="RT (digital)"
-            app:defaultValue="none"
-            app:entries="@array/keybindOptionsEntries"
-            app:entryValues="@array/keybindOptionsValues"
-            app:useSimpleSummaryProvider="true" />
-
-        <ListPreference app:key="keybind_btn_back"  app:title="Back/Select"
-            app:defaultValue="none"
-            app:entries="@array/keybindOptionsEntries"
-            app:entryValues="@array/keybindOptionsValues"
-            app:useSimpleSummaryProvider="true" />
-        <ListPreference app:key="keybind_btn_start" app:title="Start"
-            app:defaultValue="none"
-            app:entries="@array/keybindOptionsEntries"
-            app:entryValues="@array/keybindOptionsValues"
-            app:useSimpleSummaryProvider="true" />
-
-        <ListPreference app:key="keybind_btn_ls" app:title="LS (stick click)"
-            app:defaultValue="none"
-            app:entries="@array/keybindOptionsEntries"
-            app:entryValues="@array/keybindOptionsValues"
-            app:useSimpleSummaryProvider="true" />
-        <ListPreference app:key="keybind_btn_rs" app:title="RS (stick click)"
-            app:defaultValue="none"
-            app:entries="@array/keybindOptionsEntries"
-            app:entryValues="@array/keybindOptionsValues"
-            app:useSimpleSummaryProvider="true" />
-
-        <!-- DPAD -->
-        <ListPreference app:key="keybind_dpad_up"    app:title="D-Pad Up"
-            app:defaultValue="none"
-            app:entries="@array/keybindOptionsEntries"
-            app:entryValues="@array/keybindOptionsValues"
-            app:useSimpleSummaryProvider="true" />
-        <ListPreference app:key="keybind_dpad_down"  app:title="D-Pad Down"
-            app:defaultValue="none"
-            app:entries="@array/keybindOptionsEntries"
-            app:entryValues="@array/keybindOptionsValues"
-            app:useSimpleSummaryProvider="true" />
-        <ListPreference app:key="keybind_dpad_left"  app:title="D-Pad Left"
-            app:defaultValue="none"
-            app:entries="@array/keybindOptionsEntries"
-            app:entryValues="@array/keybindOptionsValues"
-            app:useSimpleSummaryProvider="true" />
-        <ListPreference app:key="keybind_dpad_right" app:title="D-Pad Right"
-            app:defaultValue="none"
-            app:entries="@array/keybindOptionsEntries"
-            app:entryValues="@array/keybindOptionsValues"
-            app:useSimpleSummaryProvider="true" />
-    </PreferenceScreen>
-
-    <PreferenceScreen app:key="userActions">
-        <ListPreference app:key="swipeUpAction" app:defaultValue="no action" app:entries="@array/userActionsValues" app:entryValues="@array/userActionsValues" />
-        <ListPreference app:key="swipeDownAction" app:defaultValue="toggle additional key bar" app:entries="@array/userActionsValues" app:entryValues="@array/userActionsValues" />
-        <ListPreference app:key="volumeUpAction" app:defaultValue="no action" app:entries="@array/userActionsVolumeUpValues" app:entryValues="@array/userActionsVolumeUpValues" />
-        <ListPreference app:key="volumeDownAction" app:defaultValue="no action" app:entries="@array/userActionsVolumeDownValues" app:entryValues="@array/userActionsVolumeDownValues" />
-        <ListPreference app:key="backButtonAction" app:defaultValue="toggle soft keyboard" app:entries="@array/userActionsValues" app:entryValues="@array/userActionsValues" />
-        <ListPreference app:key="notificationTapAction" app:defaultValue="open preferences" app:entries="@array/userActionsValues" app:entryValues="@array/userActionsValues" />
-        <ListPreference app:key="notificationButton0Action" app:defaultValue="open preferences" app:entries="@array/userActionsValues" app:entryValues="@array/userActionsValues" />
-        <ListPreference app:key="notificationButton1Action" app:defaultValue="exit" app:entries="@array/userActionsValues" app:entryValues="@array/userActionsValues" />
-        <ListPreference app:key="notificationButton2Action" app:defaultValue="exit" app:entries="@array/userActionsValues" app:entryValues="@array/userActionsValues" />
-        <ListPreference app:key="mediaKeysAction" app:defaultValue="no action" app:entries="@array/userActionsMediaKeyValues" app:entryValues="@array/userActionsMediaKeyValues" />
     </PreferenceScreen>
 
 </PreferenceScreen>

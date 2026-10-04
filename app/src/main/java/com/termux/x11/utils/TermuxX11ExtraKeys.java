@@ -51,13 +51,20 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
     private boolean shiftDown;
     private boolean metaDown;
 
-    /** Defines the key for extra keys */
-    public static final String DEFAULT_IVALUE_EXTRA_KEYS = "[['ESC','/',{key: '-', popup: '|'},'HOME','UP','END','PGUP','PREFERENCES','MAPPER'], ['TAB','CTRL','ALT','LEFT','DOWN','RIGHT','PGDN','KEYBOARD','EXIT']]"; // Double row
+    /** Defines the key for extra keys - default = user's installed 4-row config (F1-F12 row + nav + TAB row + SHIFT row) */
+    public static final String DEFAULT_IVALUE_EXTRA_KEYS = "[['F1','F2','F3','F4','F5','F6',{key: 'F7', popup: 'F10'},{key: 'F8', popup: 'F11'},{key: 'F9', popup: 'F12'}],['ESC','/',{key: '-', popup: '|'},'HOME','UP','END','PGUP','PREFERENCES','MAPPER'],['TAB','CTRL','ALT','LEFT','DOWN','RIGHT','PGDN','KEYBOARD',{key: 'BACKSPACE', popup: 'DELETE'}],['SHIFT','META','C','X','V','A','Z','P','ENTER']]";
 
     public TermuxX11ExtraKeys(@NonNull View.OnKeyListener eventlistener, MainActivity activity, ExtraKeysView extrakeysview) {
         mEventListener = eventlistener;
         mActivity = activity;
         mExtraKeysView = extrakeysview;
+        // Enforce Termux FDroid style: active special buttons (CTRL/ALT/...) show RED text when enabled.
+        // Matches screenshot: CTRL red when pressed. Defaults in ExtraKeysView are WHITE normal / RED active.
+        mExtraKeysView.setButtonColors(
+            ExtraKeysView.DEFAULT_BUTTON_TEXT_COLOR,
+            0xFFFF0000, // RED active (same as Termux app)
+            ExtraKeysView.DEFAULT_BUTTON_BACKGROUND_COLOR,
+            ExtraKeysView.DEFAULT_BUTTON_ACTIVE_BACKGROUND_COLOR);
         mClipboardManager = (ClipboardManager) mActivity.getSystemService(Context.CLIPBOARD_SERVICE);
     }
 
@@ -222,14 +229,14 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
             toggleKeyboardVisibility(mActivity);
         else if ("MAPPER".equals(key))
             mActivity.startActivity(new Intent(mActivity, VirtualKeyMapperActivity.class) {{ setAction(ACTION_START_MAPPER_ACTIVITY); }});
-        else if (key.startsWith(com.termux.x11.AppConstants.PRESET_PREFIX)) {
+        else if (key.startsWith("preset_")) {
             Context context = getInstance();
             Activity activity = (Activity) context;
             FrameLayout container = activity.findViewById(R.id.top);
             MainActivity act = (MainActivity) activity;
             VirtualKeyHandler handler = new VirtualKeyHandler(
                     context,
-                    act.getLorieView(),
+                    act.getLorieView(),                          // sau null dacă nu vrei deloc Lorie
                     act.getGamepadIpc(),
                     act.getGamepadState(),
                     act.getGamepadHandler());

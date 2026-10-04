@@ -3,96 +3,40 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/addNewKeyButton"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:backgroundTint="#7A87DB"
-        android:text="Add New Key" />
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:layout_alignParentTop="true">
 
-    <Button
-        android:id="@+id/undoButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_toStartOf="@id/addNewKeyButton"
-        android:layout_marginEnd="10dp"
-        android:text="Undo"
-        android:backgroundTint="#888888" />
+        <Button
+            android:id="@+id/addNewKeyButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Add Key" />
 
-    <Button
-        android:id="@+id/redoButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_toEndOf="@id/addNewKeyButton"
-        android:layout_marginStart="10dp"
-        android:text="Redo"
-        android:backgroundTint="#888888" />
+        <Button
+            android:id="@+id/savePresetButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Save Preset" />
 
-    <Button
-        android:id="@+id/savePresetButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="false"
-        android:layout_alignParentLeft="false"
-        android:layout_alignParentTop="false"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="false"
-        android:layout_alignParentBottom="false"
-        android:layout_marginVertical="@dimen/activity_vertical_margin"
-        android:backgroundTint="#B85858"
-        android:text="Save Preset" />
-
-    <Button
-        android:id="@+id/loadPresetButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:backgroundTint="#E29494"
-        android:text="Load Preset" />
-
+        <Button
+            android:id="@+id/loadPresetButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Load Preset" />
+    </LinearLayout>
 
     <FrameLayout
         android:id="@+id/buttonContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/addNewKeyButton"
-        android:clickable="true"
-        android:focusable="true"/>
-
-    <LinearLayout
-        android:id="@+id/multiSelectToolbar"
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/addNewKeyButton"
-        android:background="#CCCCCC"
-        android:padding="8dp"
-        android:visibility="gone">
-
-        <Button
-            android:id="@+id/btnEditTag"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Edit" />
-
-        <Button
-            android:id="@+id/btnDelete"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Delete" />
-
-        <Button
-            android:id="@+id/btnExit"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Exit" />
-    </LinearLayout>
+        android:layout_below="@id/topBar" />
 
 </RelativeLayout>
