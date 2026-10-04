@@ -140,6 +140,13 @@ public class TouchInputHandler {
      * Tap-hold scrolling uses this so tap-to-move / double-tap drag keeps working.
      */
     private boolean mIsLongPressHold;
+    /**
+     * Set when a double-tap-and-hold drag (tap-to-move path) is active, so a later
+     * long-press notification never arms tap-hold scrolling mid-drag.
+     */
+    private boolean mIsDoubleTapHold;
+    /** True after tap-hold scrolling released the held button for the current gesture. */
+    private boolean mScrollHoldReleased;
     private static DisplayManager mDisplayManager;
     private static int mDisplayRotation;
     private static final DisplayManager.DisplayListener mDisplayListener = new DisplayManager.DisplayListener() {
@@ -345,6 +352,8 @@ public class TouchInputHandler {
                     mSwipeCompleted = false;
                     mIsDragging = false;
                     mIsLongPressHold = false;
+                    mIsDoubleTapHold = false;
+                    mScrollHoldReleased = false;
                     break;
 
                 case MotionEvent.ACTION_SCROLL:
@@ -705,6 +714,11 @@ public class TouchInputHandler {
                 scrollX *= mInjector.holdToScrollSpeed;
                 scrollY *= mInjector.holdToScrollSpeed;
                 if (scrollX != 0 || scrollY != 0) {
+                    // Release any held button first so scrolling never drags content.
+                    if (!mScrollHoldReleased) {
+                        mInputStrategy.onHoldRelease();
+                        mScrollHoldReleased = true;
+                    }
                     mInjector.sendMouseWheelEvent(scrollX, scrollY);
                     return true;
                 }
@@ -762,8 +776,10 @@ public class TouchInputHandler {
                     case MotionEvent.ACTION_DOWN:
                         if (mInjector.tapToMove && mInputStrategy instanceof InputStrategyInterface.TrackpadInputStrategy) {
                             mGestureListenerHandler.removeMessages(InputStub.BUTTON_LEFT);
-                            if (mInputStrategy.onPressAndHold(InputStub.BUTTON_LEFT, true))
+                            if (mInputStrategy.onPressAndHold(InputStub.BUTTON_LEFT, true)) {
                                 mIsDragging = true;
+                                mIsDoubleTapHold = true;
+                            }
                         }
                         break;
                     case MotionEvent.ACTION_MOVE:
@@ -794,11 +810,13 @@ public class TouchInputHandler {
 
             if (mInputStrategy.onPressAndHold(button, false)) {
                 mIsDragging = true;
-                // Single-finger long-press hold enables tap-hold scrolling.
-                // Double-tap-and-hold (tap-to-move path) leaves this false so dragging still moves.
-                if (pointerCount == 1)
-                    mIsLongPressHold = true;
             }
+            // Arm tap-hold scrolling independently of the button hold so it also works
+            // with tap-to-move on (where long-press holds no button). Never arm during
+            // an active double-tap-and-hold drag so tap-to-move is never hijacked.
+            if (pointerCount == 1 && !mIsDoubleTapHold
+                    && (mInjector.holdToScrollVertical || mInjector.holdToScrollHorizontal))
+                mIsLongPressHold = true;
         }
 
         /** Maps the number of fingers in a tap or long-press gesture to a mouse-button. */

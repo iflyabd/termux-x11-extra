@@ -32,6 +32,12 @@ public interface InputStrategyInterface {
     boolean onPressAndHold(int button, boolean force);
 
     /**
+     * Called to release a button previously held via {@link #onPressAndHold},
+     * e.g. when tap-hold scrolling takes over so scrolling never drags.
+     */
+    void onHoldRelease();
+
+    /**
      * Called when a MotionEvent is received.  This method allows the input strategy to store or
      * react to specific MotionEvents as needed.
      *
@@ -50,6 +56,7 @@ public interface InputStrategyInterface {
     class NullInputStrategy implements InputStrategyInterface {
         @Override public void onTap(int button) {}
         @Override public boolean onPressAndHold(int button, boolean force) { return false; }
+        @Override public void onHoldRelease() {}
         @Override public void onScroll(float distanceX, float distanceY) {}
         @Override public void onMotionEvent(MotionEvent event) {}
     }
@@ -159,6 +166,14 @@ public interface InputStrategyInterface {
         }
 
         @Override
+        public void onHoldRelease() {
+            if (mHeldButton != InputStub.BUTTON_UNDEFINED) {
+                mInjector.sendMouseUp(mHeldButton, false);
+                mHeldButton = InputStub.BUTTON_UNDEFINED;
+            }
+        }
+
+        @Override
         public void onScroll(float distanceX, float distanceY) {
             mInjector.sendMouseWheelEvent(distanceX, distanceY);
         }
@@ -217,6 +232,14 @@ public interface InputStrategyInterface {
             mInjector.sendMouseDown(button, true);
             mHeldButton = button;
             return true;
+        }
+
+        @Override
+        public void onHoldRelease() {
+            if (mHeldButton != InputStub.BUTTON_UNDEFINED) {
+                mInjector.sendMouseUp(mHeldButton, true);
+                mHeldButton = InputStub.BUTTON_UNDEFINED;
+            }
         }
 
         @Override
