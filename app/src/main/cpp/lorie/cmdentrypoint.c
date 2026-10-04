@@ -212,7 +212,7 @@ static Bool sendConfigureNotify(__unused ClientPtr pClient, void *closure) {
     // This must be done only on X server thread.
     lorieEvent* e = closure;
     __android_log_print(ANDROID_LOG_ERROR, "tx11-request", "window changed: %d %d %s", e->screenSize.width, e->screenSize.height, e->screenSize.name);
-    lorieConfigureNotify(e->screenSize.width, e->screenSize.height, e->screenSize.framerate, e->screenSize.monitors, e->screenSize.name_size, e->screenSize.name);
+    lorieConfigureNotify(e->screenSize.width, e->screenSize.height, e->screenSize.framerate, e->screenSize.monitors, e->screenSize.mirror, e->screenSize.name_size, e->screenSize.name);
     free(e);
     return TRUE;
 }

@@ -135,6 +135,11 @@ public class TouchInputHandler {
      * is performing a drag operation.
      */
     private boolean mIsDragging;
+    /**
+     * Set to true only by a single-finger long-press hold (not by double-tap-and-hold).
+     * Tap-hold scrolling uses this so tap-to-move / double-tap drag keeps working.
+     */
+    private boolean mIsLongPressHold;
     private static DisplayManager mDisplayManager;
     private static int mDisplayRotation;
     private static final DisplayManager.DisplayListener mDisplayListener = new DisplayManager.DisplayListener() {
@@ -339,6 +344,7 @@ public class TouchInputHandler {
                     mSuppressCursorMovement = false;
                     mSwipeCompleted = false;
                     mIsDragging = false;
+                    mIsLongPressHold = false;
                     break;
 
                 case MotionEvent.ACTION_SCROLL:
@@ -431,6 +437,7 @@ public class TouchInputHandler {
         mInjector.holdToScrollVertical = p.holdToScrollVertical.get();
         mInjector.holdToScrollHorizontal = p.holdToScrollHorizontal.get();
         mInjector.invertHoldToScroll = p.invertHoldToScroll.get();
+        mInjector.holdToScrollSpeed = ((float) p.holdToScrollSpeed.get())/100;
         mInjector.preferScancodes = p.preferScancodes.get();
         mInjector.pointerCapture = p.pointerCapture.get();
         mInjector.scaleTouchpad = p.scaleTouchpad.get() &&
@@ -684,16 +691,19 @@ public class TouchInputHandler {
             if (pointerCount != 1 || mSuppressCursorMovement)
                 return false;
 
-            // Tap-and-hold to scroll: after a long-press / tap-hold (mIsDragging),
-            // convert finger movement into wheel events on the enabled axes.
-            // Same distance convention as two-finger scroll; invert flag negates both.
-            if (mIsDragging && (mInjector.holdToScrollVertical || mInjector.holdToScrollHorizontal)) {
+            // Tap-and-hold to scroll: only after a single-finger long-press hold
+            // (mIsLongPressHold), so tap-to-move and double-tap-and-hold dragging
+            // keep working untouched. Same distance convention as two-finger
+            // scroll; invert flag negates both; speed slider scales both.
+            if (mIsLongPressHold && (mInjector.holdToScrollVertical || mInjector.holdToScrollHorizontal)) {
                 float scrollX = mInjector.holdToScrollHorizontal ? distanceX : 0;
                 float scrollY = mInjector.holdToScrollVertical ? distanceY : 0;
                 if (mInjector.invertHoldToScroll) {
                     scrollX = -scrollX;
                     scrollY = -scrollY;
                 }
+                scrollX *= mInjector.holdToScrollSpeed;
+                scrollY *= mInjector.holdToScrollSpeed;
                 if (scrollX != 0 || scrollY != 0) {
                     mInjector.sendMouseWheelEvent(scrollX, scrollY);
                     return true;
@@ -782,8 +792,13 @@ public class TouchInputHandler {
                 moveCursorToScreenPoint(x, y);
             }
 
-            if (mInputStrategy.onPressAndHold(button, false))
+            if (mInputStrategy.onPressAndHold(button, false)) {
                 mIsDragging = true;
+                // Single-finger long-press hold enables tap-hold scrolling.
+                // Double-tap-and-hold (tap-to-move path) leaves this false so dragging still moves.
+                if (pointerCount == 1)
+                    mIsLongPressHold = true;
+            }
         }
 
         /** Maps the number of fingers in a tap or long-press gesture to a mouse-button. */

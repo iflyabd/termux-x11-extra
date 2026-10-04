@@ -63,6 +63,7 @@ static ExaDriverRec lorieExa;
 static RROutputPtr lorieOutputs[LORIE_MAX_HEADS] = { NULL, NULL, NULL };
 static RRCrtcPtr lorieCrtcs[LORIE_MAX_HEADS] = { NULL, NULL, NULL };
 static int lorieNumHeads = 0;
+static int lorieMirrored = 0;
 
 typedef struct {
     DamagePtr damage;
@@ -683,7 +684,7 @@ static Bool lorieScreenInit(ScreenPtr pScreen, unused int argc, unused char **ar
     return TRUE;
 }                               /* end lorieScreenInit */
 
-void lorieConfigureNotify(int width, int height, int framerate, int monitors, size_t name_size, char* name) {
+void lorieConfigureNotify(int width, int height, int framerate, int monitors, int mirror, size_t name_size, char* name) {
     ScreenPtr pScreen = pScreenPtr;
     int n, i;
     framerate = framerate ? framerate : 30;
@@ -699,12 +700,12 @@ void lorieConfigureNotify(int width, int height, int framerate, int monitors, si
         pvfb->root.name[1023] = '\0';
     }
 
-    if (width && height && (pScreen->width != width || pScreen->height != height || pvfb->root.framerate != framerate || lorieNumHeads != n)) {
+    if (width && height && (pScreen->width != width || pScreen->height != height || pvfb->root.framerate != framerate || lorieNumHeads != n || (mirror ? 1 : 0) != lorieMirrored)) {
         CARD32 mmWidth, mmHeight;
         RRModePtr mode = lorieCvt(width, height, framerate);
         Bool portrait = height > width;
-        int headW = portrait ? width : width / n;
-        int headH = portrait ? height / n : height;
+        int headW = (mirror || portrait) ? width : width / n;
+        int headH = (mirror || !portrait) ? height : height / n;
 
         mmWidth = ((double) (mode->mode.width)) * 25.4 / monitorResolution;
         mmHeight = ((double) (mode->mode.width)) * 25.4 / monitorResolution;
@@ -718,8 +719,8 @@ void lorieConfigureNotify(int width, int height, int framerate, int monitors, si
             if (i < n) {
                 char headName[1056];
                 RRModePtr headMode = lorieCvt(headW, headH, framerate);
-                int hx = portrait ? 0 : i * headW;
-                int hy = portrait ? i * headH : 0;
+                int hx = (mirror || portrait) ? 0 : i * headW;
+                int hy = (mirror || !portrait) ? 0 : i * headH;
                 if (i == 0)
                     snprintf(headName, sizeof headName, "%s", pvfb->root.name);
                 else
@@ -728,7 +729,17 @@ void lorieConfigureNotify(int width, int height, int framerate, int monitors, si
                 strncpy(output->name, headName, 1023);
                 output->name[1023] = '\0';
                 output->nameLength = strlen(output->name);
-                RROutputSetClones(output, NULL, 0);
+                if (mirror) {
+                    /* Clone mode: every head mirrors the others. */
+                    RROutputPtr clones[LORIE_MAX_HEADS];
+                    int j, nclones = 0;
+                    for (j = 0; j < n; j++) {
+                        if (j != i && lorieOutputs[j])
+                            clones[nclones++] = lorieOutputs[j];
+                    }
+                    RROutputSetClones(output, clones, nclones);
+                } else
+                    RROutputSetClones(output, NULL, 0);
                 RROutputSetModes(output, &headMode, 1, 0);
                 RROutputSetCrtcs(output, &crtc, 1);
                 RROutputSetConnection(output, RR_Connected);
@@ -740,6 +751,7 @@ void lorieConfigureNotify(int width, int height, int framerate, int monitors, si
             }
         }
         lorieNumHeads = n;
+        lorieMirrored = mirror ? 1 : 0;
 
         log(VERBOSE, "New reported framerate is %d", framerate);
         pvfb->root.framerate = framerate;

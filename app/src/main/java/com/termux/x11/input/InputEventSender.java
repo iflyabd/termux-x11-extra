@@ -35,6 +35,7 @@ public final class InputEventSender {
     public boolean holdToScrollVertical = false;
     public boolean holdToScrollHorizontal = false;
     public boolean invertHoldToScroll = false;
+    public float holdToScrollSpeed = 1.0f;
     public boolean preferScancodes = false;
     public boolean pointerCapture = false;
     public boolean scaleTouchpad = false;

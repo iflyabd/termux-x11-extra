@@ -78,6 +78,11 @@
             app:entries="@array/displaySplitEntries"
             app:entryValues="@array/displaySplitValues" />
         <SwitchPreferenceCompat
+            app:key="displayMirror"
+            app:title="@string/lorie_pref_displayMirror"
+            app:summary="@string/lorie_pref_displayMirror_summary"
+            app:defaultValue="false" />
+        <SwitchPreferenceCompat
             app:key="hideCutout"
             app:title="@string/lorie_pref_hideCutout"
             app:defaultValue="false" />
@@ -158,6 +163,15 @@
             app:title="@string/lorie_pref_invertHoldToScroll"
             app:summary="@string/lorie_pref_invertHoldToScroll_summary"
             app:defaultValue="false" />
+        <SeekBarPreference
+            app:key="holdToScrollSpeed"
+            app:title="@string/lorie_pref_holdToScrollSpeed"
+            app:defaultValue="100"
+            app:min="10"
+            android:max="300"
+            app:seekBarIncrement="10"
+            app:showSeekBarValue="true"
+            app:updatesContinuously="true" />
     </PreferenceScreen>
 
     <PreferenceScreen app:key="kbd" app:title="@string/lorie_pref_kbd">

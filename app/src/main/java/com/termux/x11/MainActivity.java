@@ -329,7 +329,8 @@ public class MainActivity extends AppCompatActivity {
             } catch (NumberFormatException e) {
                 monitors = 1;
             }
-            LorieView.sendWindowChange(screenWidth, screenHeight, framerate, monitors, name);
+            int mirror = prefs.displayMirror.get() ? 1 : 0;
+            LorieView.sendWindowChange(screenWidth, screenHeight, framerate, monitors, mirror, name);
         });
 
         registerReceiver(receiver, new IntentFilter(ACTION_START) {{

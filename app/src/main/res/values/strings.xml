@@ -74,6 +74,9 @@ E.g. <b>META</b> for <i>META key</i>, \n
     <string name="lorie_pref_holdToScrollHorizontal_summary">Tap and hold, then move left or right to scroll horizontally</string>
     <string name="lorie_pref_invertHoldToScroll">Invert tap-hold scroll</string>
     <string name="lorie_pref_invertHoldToScroll_summary">Invert scroll direction for tap-hold scrolling (both axes)</string>
+    <string name="lorie_pref_holdToScrollSpeed">Tap-hold scroll speed, %</string>
+    <string name="lorie_pref_displayMirror">Mirror split displays</string>
+    <string name="lorie_pref_displayMirror_summary">All split heads show the same desktop (clone) instead of separate regions</string>
 
     <string name="lorie_pref_showAdditionalKbd">Show additional keyboard</string>
     <string name="lorie_pref_showAdditionalKbd_summary">Show keyboard with additional keys.</string>
@@ -159,6 +162,8 @@ E.g. <b>META</b> for <i>META key</i>, \n
     <string name="pref_holdToScrollVertical">Tap-hold to scroll up/down</string>
     <string name="pref_holdToScrollHorizontal">Tap-hold to scroll left/right</string>
     <string name="pref_invertHoldToScroll">Invert tap-hold scroll</string>
+    <string name="pref_holdToScrollSpeed">Tap-hold scroll speed, %</string>
+    <string name="pref_displayMirror">Mirror split displays</string>
     <!-- Keyboard screen -->
     <string name="pref_showAdditionalKbd">Show additional keyboard</string>
     <string name="pref_showIMEWhileExternalConnected">Show IME with external keyboard</string>

@@ -20,7 +20,7 @@
 
 struct lorie_shared_server_state;
 
-void lorieConfigureNotify(int width, int height, int framerate, int monitors, size_t name_size, char* name);
+void lorieConfigureNotify(int width, int height, int framerate, int monitors, int mirror, size_t name_size, char* name);
 void lorieEnableClipboardSync(Bool enable);
 void lorieSendClipboardData(const char* data);
 void lorieInitClipboard(void);
@@ -110,7 +110,7 @@ typedef union {
     uint8_t type;
     struct {
         uint8_t t;
-        uint16_t width, height, framerate, monitors;
+        uint16_t width, height, framerate, monitors, mirror;
         size_t name_size;
         char *name;
     } screenSize;
