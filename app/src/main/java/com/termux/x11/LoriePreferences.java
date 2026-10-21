@@ -364,26 +364,6 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
             startActivityForResult(intent, REQUEST_EXTRA_KEYS_BORDER_IMAGE);
         }
 
-        @Override
-        public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-            super.onActivityResult(requestCode, resultCode, data);
-            if (requestCode != REQUEST_EXTRA_KEYS_BORDER_IMAGE
-                    || resultCode != android.app.Activity.RESULT_OK || data == null)
-                return;
-            Uri uri = data.getData();
-            if (uri == null)
-                return;
-            try {
-                requireContext().getContentResolver().takePersistableUriPermission(
-                        uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            } catch (SecurityException ignored) {
-                // Some providers do not support persistable permissions.
-            }
-            prefs.extraKeysBorderImage.put(uri.toString());
-            updateBorderImageSummary(findPreference("extraKeysBorderImage"));
-            notifyPreferenceChanged("extraKeysBorderImage");
-        }
-
         /** @noinspection DataFlowIssue*/
         @Override @SuppressLint("ApplySharedPref")
         public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
@@ -553,7 +533,17 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
             Context context = requireContext();
             Uri uri = data.getData();
 
-            if (requestCode == REQUEST_EXPORT_FILE) {
+            if (requestCode == REQUEST_EXTRA_KEYS_BORDER_IMAGE) {
+                try {
+                    context.getContentResolver().takePersistableUriPermission(
+                            uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                } catch (SecurityException ignored) {
+                    // Some providers do not support persistable permissions.
+                }
+                prefs.extraKeysBorderImage.put(uri.toString());
+                updateBorderImageSummary(findPreference("extraKeysBorderImage"));
+                notifyPreferenceChanged("extraKeysBorderImage");
+            } else if (requestCode == REQUEST_EXPORT_FILE) {
                 try {
                     OutputStream out = context.getContentResolver().openOutputStream(uri);
                     if (out != null) {
