@@ -123,7 +123,10 @@ E.g. <b>META</b> for <i>META key</i>, \n
     <string name="lorie_pref_extraKeysActiveTextColor">Pressed key text color (ARGB)</string>
     <string name="lorie_pref_extraKeysActiveBackgroundColor">Pressed key background color (ARGB)</string>
     <string name="lorie_pref_extraKeysBorderColor">Key border color (ARGB)</string>
-    <string name="lorie_pref_extraKeysBorderWidth">Key border width, dp</string>
+    <string name="lorie_pref_extraKeysBorderWidth">Key border width, dp (0.1 steps)</string>
+    <string name="lorie_pref_extraKeysBorderImageEnabled">Use PNG key border</string>
+    <string name="lorie_pref_extraKeysBorderImageEnabled_summary">Draw the chosen PNG over each key instead of the coded border and glow</string>
+    <string name="lorie_pref_extraKeysBorderImage">Key border image (PNG)</string>
     <string name="lorie_pref_extraKeysBorderRadius">Key corner radius, dp</string>
     <string name="lorie_pref_extraKeysGlowRadius">Border glow radius, dp</string>
     <string name="lorie_pref_extraKeysKeyGap">Gap between keys, dp</string>

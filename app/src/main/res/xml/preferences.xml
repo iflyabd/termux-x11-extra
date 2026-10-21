@@ -327,13 +327,13 @@
             app:title="@string/lorie_pref_extraKeysBorderColor"
             app:defaultValue="#33FFFFFF" />
         <SeekBarPreference
-            app:key="extraKeysBorderWidth"
+            app:key="extraKeysBorderWidthTenths"
             app:title="@string/lorie_pref_extraKeysBorderWidth"
-            app:defaultValue="1"
+            app:defaultValue="10"
             app:min="0"
-            android:max="8"
+            android:max="80"
             app:seekBarIncrement="1"
-            app:showSeekBarValue="true"
+            app:showSeekBarValue="false"
             app:updatesContinuously="true" />
         <SeekBarPreference
             app:key="extraKeysBorderRadius"
@@ -353,6 +353,15 @@
             app:seekBarIncrement="1"
             app:showSeekBarValue="true"
             app:updatesContinuously="true" />
+        <SwitchPreferenceCompat
+            app:key="extraKeysBorderImageEnabled"
+            app:title="@string/lorie_pref_extraKeysBorderImageEnabled"
+            app:summary="@string/lorie_pref_extraKeysBorderImageEnabled_summary"
+            app:defaultValue="false" />
+        <EditTextPreference
+            app:key="extraKeysBorderImage"
+            app:title="@string/lorie_pref_extraKeysBorderImage"
+            app:defaultValue="" />
         <SeekBarPreference
             app:key="extraKeysKeyGap"
             app:title="@string/lorie_pref_extraKeysKeyGap"

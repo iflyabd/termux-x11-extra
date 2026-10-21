@@ -268,6 +268,8 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                 "extraKeysBorderColor"
         };
 
+        private static final int REQUEST_EXTRA_KEYS_BORDER_IMAGE = 1003;
+
         private static boolean isExtraKeysColorKey(@Nullable String key) {
             if (key == null)
                 return false;
@@ -318,6 +320,70 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
             }).show();
         }
 
+        private String formatBorderWidth(int tenths) {
+            return String.format(java.util.Locale.getDefault(), "%.1f dp", tenths / 10f);
+        }
+
+        private void updateBorderImageSummary(@Nullable Preference preference) {
+            if (preference == null)
+                return;
+            String value = prefs.extraKeysBorderImage.get();
+            if (value == null || value.isEmpty()) {
+                preference.setSummary("No image (tap to browse)");
+                return;
+            }
+            String name = Uri.parse(value).getLastPathSegment();
+            preference.setSummary(name != null ? name : value);
+        }
+
+        private void showBorderImageDialog(Preference preference) {
+            androidx.appcompat.app.AlertDialog.Builder builder =
+                    new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                            .setTitle(preference.getTitle())
+                            .setMessage("Choose a PNG image to draw over each key as its border/" +
+                                    "background. Transparent areas let the key colors show through.")
+                            .setPositiveButton("Browse…", (dialog, which) -> launchBorderImagePicker())
+                            .setNegativeButton(android.R.string.cancel, null);
+            if (!prefs.extraKeysBorderImage.get().isEmpty()) {
+                builder.setNeutralButton("Clear", (dialog, which) -> {
+                    prefs.extraKeysBorderImage.put("");
+                    updateBorderImageSummary(preference);
+                    notifyPreferenceChanged("extraKeysBorderImage");
+                });
+            }
+            builder.create().show();
+        }
+
+        private void launchBorderImagePicker() {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("image/*");
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/png"});
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+            startActivityForResult(intent, REQUEST_EXTRA_KEYS_BORDER_IMAGE);
+        }
+
+        @Override
+        public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+            super.onActivityResult(requestCode, resultCode, data);
+            if (requestCode != REQUEST_EXTRA_KEYS_BORDER_IMAGE
+                    || resultCode != android.app.Activity.RESULT_OK || data == null)
+                return;
+            Uri uri = data.getData();
+            if (uri == null)
+                return;
+            try {
+                requireContext().getContentResolver().takePersistableUriPermission(
+                        uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            } catch (SecurityException ignored) {
+                // Some providers do not support persistable permissions.
+            }
+            prefs.extraKeysBorderImage.put(uri.toString());
+            updateBorderImageSummary(findPreference("extraKeysBorderImage"));
+            notifyPreferenceChanged("extraKeysBorderImage");
+        }
+
         /** @noinspection DataFlowIssue*/
         @Override @SuppressLint("ApplySharedPref")
         public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
@@ -353,6 +419,12 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                 if (isExtraKeysColorKey(p.getKey()))
                     updateColorPreference(p, p instanceof EditTextPreference
                             ? ((EditTextPreference) p).getText() : null);
+
+                if ("extraKeysBorderWidthTenths".contentEquals(p.getKey()))
+                    p.setSummary(formatBorderWidth(prefs.extraKeysBorderWidthTenths.get()));
+
+                if ("extraKeysBorderImage".contentEquals(p.getKey()))
+                    updateBorderImageSummary(p);
             }
 
             with("showAdditionalKbd", p -> p.setLayoutResource(R.layout.preference));
@@ -686,7 +758,7 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                     prefs.extraKeysActiveBackgroundColor.put(palette.activeBackground);
                     prefs.extraKeysBorderColor.put(palette.border);
                     prefs.extraKeysBorderRadius.put(palette.radiusDp);
-                    prefs.extraKeysBorderWidth.put(palette.borderWidthDp);
+                    prefs.extraKeysBorderWidthTenths.put(palette.borderWidthTenths);
                     prefs.extraKeysTextSize.put(palette.textSizeSp);
                     prefs.extraKeysKeyGap.put(palette.keyGapDp);
                     refreshColorPreferences();
@@ -703,6 +775,9 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
 
             if (isExtraKeysColorKey(key))
                 updateColorPreference(preference, (String) newValue);
+
+            if ("extraKeysBorderWidthTenths".contentEquals(key))
+                preference.setSummary(formatBorderWidth((Integer) newValue));
 
             if ("enableAccessibilityServiceAutomatically".contentEquals(key)) {
                 if (!((Boolean) newValue))
@@ -729,18 +804,26 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
             return true;
         }
 
-        private void notifyExtraKeysConfigChanged() {
+        private void notifyPreferenceChanged(String key) {
             requireContext().sendBroadcast(new Intent(ACTION_PREFERENCES_CHANGED) {{
-                putExtra("key", "extra_keys_config");
+                putExtra("key", key);
                 putExtra("fromBroadcast", true);
                 setPackage("com.termux.x11");
             }});
+        }
+
+        private void notifyExtraKeysConfigChanged() {
+            notifyPreferenceChanged("extra_keys_config");
         }
 
         @Override
         public void onDisplayPreferenceDialog(@NonNull Preference preference) {
             if (isExtraKeysColorKey(preference.getKey())) {
                 showColorPicker(preference);
+                return;
+            }
+            if ("extraKeysBorderImage".contentEquals(preference.getKey())) {
+                showBorderImageDialog(preference);
                 return;
             }
             if ("extra_keys_config".contentEquals(preference.getKey())) {

@@ -90,15 +90,21 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
         mExtraKeysView.setButtonColors(textColor, activeTextColor, backgroundColor, activeBackgroundColor);
         mExtraKeysView.setButtonAppearance(
                 borderColor,
-                dp(prefs.extraKeysBorderWidth.get()),
+                dp(prefs.extraKeysBorderWidthTenths.get() / 10f),
                 dp(prefs.extraKeysBorderRadius.get()),
                 prefs.extraKeysTextSize.get(),
                 ExtraKeysThemes.typeface(prefs.extraKeysFont.get()),
                 Math.round(dp(prefs.extraKeysKeyGap.get())),
                 dp(prefs.extraKeysGlowRadius.get()));
+        mExtraKeysView.setButtonBorderImage(prefs.extraKeysBorderImageEnabled.get()
+                ? prefs.extraKeysBorderImage.get() : null);
     }
 
     private float dp(int value) {
+        return dp((float) value);
+    }
+
+    private float dp(float value) {
         return value * mActivity.getResources().getDisplayMetrics().density;
     }
 

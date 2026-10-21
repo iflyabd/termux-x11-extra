@@ -11,6 +11,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -192,6 +193,9 @@ public final class ExtraKeysView extends GridLayout {
     private int mButtonGap = 0;
     /** The radius of the glowing fade around the button border, in pixels. */
     private float mButtonGlowRadius = 0f;
+    /** Optional PNG image used instead of the coded border, or null to use the border. */
+    @Nullable
+    private Drawable mButtonBorderImage = null;
 
 
     /**
@@ -303,6 +307,26 @@ public final class ExtraKeysView extends GridLayout {
         applyAppearanceToButtons();
     }
 
+    /**
+     * Sets an optional image (usually a PNG chosen by the user) that is drawn over each key
+     * instead of the coded border and glow. Pass {@code null} or an empty string to use the
+     * regular border again.
+     */
+    public void setButtonBorderImage(@Nullable String uriString) {
+        Drawable drawable = null;
+        if (uriString != null && !uriString.isEmpty()) {
+            try (java.io.InputStream input = getContext().getContentResolver()
+                    .openInputStream(Uri.parse(uriString))) {
+                if (input != null)
+                    drawable = Drawable.createFromStream(input, uriString);
+            } catch (Exception ignored) {
+                // Keep the regular border if the image cannot be loaded.
+            }
+        }
+        mButtonBorderImage = drawable;
+        applyAppearanceToButtons();
+    }
+
     /** Applies the current appearance values to every button already added to the view. */
     private void applyAppearanceToButtons() {
         for (int i = 0; i < getChildCount(); i++) {
@@ -325,14 +349,14 @@ public final class ExtraKeysView extends GridLayout {
     }
 
     /** Builds a rounded/bordered background drawable for the given state color. */
-    private Drawable createButtonBackground(int color) {
+    private Drawable createButtonBackground(int color, boolean active) {
         return new GlowDrawable(color, mButtonBorderColor, mButtonBorderWidth,
-                mButtonCornerRadius, mButtonGlowRadius);
+                mButtonCornerRadius, mButtonGlowRadius, mButtonBorderImage, active);
     }
 
     /** Switches a button between its idle and pressed backgrounds without losing rounding/border. */
     private void setButtonBackground(View view, boolean active) {
-        view.setBackground(createButtonBackground(active ? mButtonActiveBackgroundColor : mButtonBackgroundColor));
+        view.setBackground(createButtonBackground(active ? mButtonActiveBackgroundColor : mButtonBackgroundColor, active));
     }
 
     /**
@@ -348,14 +372,20 @@ public final class ExtraKeysView extends GridLayout {
         private final float borderWidth;
         private final float cornerRadius;
         private final float glowRadius;
+        @Nullable
+        private final Drawable borderImage;
+        private final boolean active;
 
         GlowDrawable(int fillColor, int borderColor, float borderWidth,
-                     float cornerRadius, float glowRadius) {
+                     float cornerRadius, float glowRadius,
+                     @Nullable Drawable borderImage, boolean active) {
             this.fillColor = fillColor;
             this.borderColor = borderColor;
             this.borderWidth = Math.max(0f, borderWidth);
             this.cornerRadius = Math.max(0f, cornerRadius);
             this.glowRadius = Math.max(0f, glowRadius);
+            this.borderImage = borderImage;
+            this.active = active;
         }
 
         @Override
@@ -368,6 +398,20 @@ public final class ExtraKeysView extends GridLayout {
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(fillColor);
             canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint);
+
+            // A user-provided PNG replaces the coded border and glow entirely.
+            if (borderImage != null) {
+                borderImage.setBounds(bounds);
+                borderImage.draw(canvas);
+                if (active) {
+                    paint.setStyle(Paint.Style.FILL);
+                    paint.setColor(fillColor);
+                    paint.setAlpha(0x55);
+                    canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint);
+                    paint.setAlpha(0xFF);
+                }
+                return;
+            }
 
             int borderAlpha = Color.alpha(borderColor);
             if (borderAlpha == 0)
@@ -680,7 +724,7 @@ public final class ExtraKeysView extends GridLayout {
             button.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, mButtonTextSizeSp);
         if (mButtonTypeface != null)
             button.setTypeface(mButtonTypeface);
-        button.setBackground(createButtonBackground(mButtonActiveBackgroundColor));
+        button.setBackground(createButtonBackground(mButtonActiveBackgroundColor, true));
         mPopupWindow = new PopupWindow(this);
         mPopupWindow.setWidth(LayoutParams.WRAP_CONTENT);
         mPopupWindow.setHeight(LayoutParams.WRAP_CONTENT);

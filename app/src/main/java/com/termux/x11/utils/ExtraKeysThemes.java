@@ -28,19 +28,19 @@ public final class ExtraKeysThemes {
         public final String activeBackground;
         public final String border;
         public final int radiusDp;
-        public final int borderWidthDp;
+        public final int borderWidthTenths;
         public final int textSizeSp;
         public final int keyGapDp;
 
         Palette(String text, String activeText, String background, String activeBackground,
-                String border, int radiusDp, int borderWidthDp, int textSizeSp, int keyGapDp) {
+                String border, int radiusDp, int borderWidthTenths, int textSizeSp, int keyGapDp) {
             this.text = text;
             this.activeText = activeText;
             this.background = background;
             this.activeBackground = activeBackground;
             this.border = border;
             this.radiusDp = radiusDp;
-            this.borderWidthDp = borderWidthDp;
+            this.borderWidthTenths = borderWidthTenths;
             this.textSizeSp = textSizeSp;
             this.keyGapDp = keyGapDp;
         }
@@ -56,28 +56,28 @@ public final class ExtraKeysThemes {
         switch (theme) {
             case "termux":
                 return new Palette("#FFFFFFFF", "#FFFF0000", "#00000000", "#FF7F7F7F",
-                        "#33FFFFFF", 6, 1, 14, 2);
+                        "#33FFFFFF", 6, 10, 14, 2);
             case "dracula":
                 return new Palette("#FFF8F8F2", "#FFFF79C6", "#FF282A36", "#FF44475A",
-                        "#FF6272A4", 8, 1, 14, 2);
+                        "#FF6272A4", 8, 10, 14, 2);
             case "nord":
                 return new Palette("#FFECEFF4", "#FF88C0D0", "#FF2E3440", "#FF4C566A",
-                        "#FF5E81AC", 8, 1, 14, 2);
+                        "#FF5E81AC", 8, 10, 14, 2);
             case "solarized":
                 return new Palette("#FF93A1A1", "#FFB58900", "#FF002B36", "#FF073642",
-                        "#FF586E75", 6, 1, 14, 2);
+                        "#FF586E75", 6, 10, 14, 2);
             case "mono":
                 return new Palette("#FFFFFFFF", "#FF000000", "#FF000000", "#FFFFFFFF",
-                        "#FF808080", 0, 1, 14, 1);
+                        "#FF808080", 0, 10, 14, 1);
             case "amber":
                 return new Palette("#FFFFC107", "#FF000000", "#FF1A1A1A", "#FFFFC107",
-                        "#FFFF9800", 10, 1, 15, 3);
+                        "#FFFF9800", 10, 15, 15, 3);
             case "ocean":
                 return new Palette("#FFE0F7FA", "#FF00E5FF", "#FF0B2530", "#FF01579B",
-                        "#FF0288D1", 8, 1, 14, 2);
+                        "#FF0288D1", 8, 10, 14, 2);
             case "matrix":
                 return new Palette("#FF00FF41", "#FF000000", "#FF000000", "#FF00FF41",
-                        "#FF00FF41", 4, 1, 14, 1);
+                        "#FF00FF41", 4, 10, 14, 1);
             case CUSTOM:
             default:
                 return null;
