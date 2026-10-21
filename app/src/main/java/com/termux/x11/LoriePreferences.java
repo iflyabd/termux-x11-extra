@@ -19,6 +19,7 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.database.ContentObserver;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,6 +28,7 @@ import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 
@@ -61,6 +63,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.termux.x11.utils.ColorPickerDialog;
 import com.termux.x11.utils.ExtraKeysLayouts;
 import com.termux.x11.utils.ExtraKeysThemes;
 import com.termux.x11.utils.KeyInterceptor;
@@ -257,6 +260,64 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
             return getResources().getIdentifier("pref_" + name, "string", getContext().getPackageName());
         }
 
+        private static final String[] EXTRA_KEYS_COLOR_KEYS = {
+                "extraKeysBackgroundColor",
+                "extraKeysTextColor",
+                "extraKeysActiveTextColor",
+                "extraKeysActiveBackgroundColor",
+                "extraKeysBorderColor"
+        };
+
+        private static boolean isExtraKeysColorKey(@Nullable String key) {
+            if (key == null)
+                return false;
+            for (String colorKey : EXTRA_KEYS_COLOR_KEYS)
+                if (colorKey.equals(key))
+                    return true;
+            return false;
+        }
+
+        /** Updates the hex summary and the color swatch icon of a color preference. */
+        private void updateColorPreference(@Nullable Preference preference, @Nullable String value) {
+            if (preference == null || !isExtraKeysColorKey(preference.getKey()))
+                return;
+            String text = value != null ? value : "";
+            preference.setSummary(text);
+
+            int color = ExtraKeysThemes.parseColor(text, 0x00000000);
+            float density = getResources().getDisplayMetrics().density;
+            int size = Math.round(18 * density);
+            GradientDrawable swatch = new GradientDrawable();
+            swatch.setShape(GradientDrawable.OVAL);
+            swatch.setColor(color);
+            swatch.setStroke(Math.max(1, Math.round(density)), 0x66FFFFFF);
+            swatch.setSize(size, size);
+            preference.setIcon(swatch);
+        }
+
+        /** Refreshes the swatches after a ready-made theme wrote new colors. */
+        private void refreshColorPreferences() {
+            for (String key : EXTRA_KEYS_COLOR_KEYS) {
+                Preference preference = findPreference(key);
+                if (preference instanceof EditTextPreference)
+                    updateColorPreference(preference, ((EditTextPreference) preference).getText());
+            }
+        }
+
+        private void showColorPicker(Preference preference) {
+            String current = preference instanceof EditTextPreference
+                    ? ((EditTextPreference) preference).getText() : null;
+            int initial = ExtraKeysThemes.parseColor(current, 0xFFFFFFFF);
+            ColorPickerDialog.show(requireContext(), preference.getTitle(), initial, color -> {
+                String value = ColorPickerDialog.formatColor(color);
+                if (preference.callChangeListener(value)) {
+                    if (preference instanceof EditTextPreference)
+                        ((EditTextPreference) preference).setText(value);
+                    updateColorPreference(preference, value);
+                }
+            }).show();
+        }
+
         /** @noinspection DataFlowIssue*/
         @Override @SuppressLint("ApplySharedPref")
         public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
@@ -288,6 +349,10 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                     list.setEntryValues(prefs.keys.get(p.getKey()).asList().getValues());
                     list.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
                 }
+
+                if (isExtraKeysColorKey(p.getKey()))
+                    updateColorPreference(p, p instanceof EditTextPreference
+                            ? ((EditTextPreference) p).getText() : null);
             }
 
             with("showAdditionalKbd", p -> p.setLayoutResource(R.layout.preference));
@@ -624,6 +689,7 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                     prefs.extraKeysBorderWidth.put(palette.borderWidthDp);
                     prefs.extraKeysTextSize.put(palette.textSizeSp);
                     prefs.extraKeysKeyGap.put(palette.keyGapDp);
+                    refreshColorPreferences();
                 }
             } else if (key.startsWith("extraKeys")
                     && !"extraKeysLayout".contentEquals(key)
@@ -634,6 +700,9 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
 
             if ("showAdditionalKbd".contentEquals(key) && (Boolean) newValue)
                 prefs.additionalKbdVisible.put(true);
+
+            if (isExtraKeysColorKey(key))
+                updateColorPreference(preference, (String) newValue);
 
             if ("enableAccessibilityServiceAutomatically".contentEquals(key)) {
                 if (!((Boolean) newValue))
@@ -670,6 +739,10 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
 
         @Override
         public void onDisplayPreferenceDialog(@NonNull Preference preference) {
+            if (isExtraKeysColorKey(preference.getKey())) {
+                showColorPicker(preference);
+                return;
+            }
             if ("extra_keys_config".contentEquals(preference.getKey())) {
                 @SuppressLint("InflateParams")
                 View view = getLayoutInflater().inflate(R.layout.extra_keys_config, null, false);
