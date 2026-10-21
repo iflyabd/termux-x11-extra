@@ -125,6 +125,7 @@ E.g. <b>META</b> for <i>META key</i>, \n
     <string name="lorie_pref_extraKeysBorderColor">Key border color (ARGB)</string>
     <string name="lorie_pref_extraKeysBorderWidth">Key border width, dp</string>
     <string name="lorie_pref_extraKeysBorderRadius">Key corner radius, dp</string>
+    <string name="lorie_pref_extraKeysGlowRadius">Border glow radius, dp</string>
     <string name="lorie_pref_extraKeysKeyGap">Gap between keys, dp</string>
     <string name="lorie_pref_extraKeysTextSize">Key text size, sp</string>
     <string name="lorie_pref_extraKeysFont">Key font</string>

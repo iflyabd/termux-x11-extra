@@ -94,7 +94,7 @@ public final class ColorPickerDialog {
             public void afterTextChanged(Editable s) {
                 if (syncing[0])
                     return;
-                Integer parsed = parseColor(s.toString(), picker.getAlpha());
+                Integer parsed = parseColor(s.toString(), picker.getColorAlpha());
                 if (parsed == null)
                     return;
                 syncing[0] = true;
@@ -112,7 +112,7 @@ public final class ColorPickerDialog {
                 .setTitle(title != null ? title : "Pick a color")
                 .setView(root)
                 .setPositiveButton(android.R.string.ok, (d, which) -> {
-                    Integer parsed = parseColor(hex.getText().toString(), picker.getAlpha());
+                    Integer parsed = parseColor(hex.getText().toString(), picker.getColorAlpha());
                     listener.onColorSelected(parsed != null ? parsed : picker.getColor());
                 })
                 .setNegativeButton(android.R.string.cancel, null)
@@ -269,7 +269,7 @@ public final class ColorPickerDialog {
             invalidate();
         }
 
-        int getAlpha() {
+        int getColorAlpha() {
             return alpha;
         }
 
@@ -343,6 +343,10 @@ public final class ColorPickerDialog {
             // Alpha cursor.
             float ax = alphaRect.left + (alpha / 255f) * alphaRect.width();
             drawThumb(canvas, ax, alphaRect.centerY(), dp(9));
+        }
+
+        private float dp(float value) {
+            return value * getResources().getDisplayMetrics().density;
         }
 
         private void drawThumb(Canvas canvas, float x, float y, float radius) {

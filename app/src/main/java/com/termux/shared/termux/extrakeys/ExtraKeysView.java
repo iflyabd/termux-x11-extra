@@ -2,9 +2,15 @@ package com.termux.shared.termux.extrakeys;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -122,6 +128,8 @@ public final class ExtraKeysView extends GridLayout {
     public static final float DEFAULT_BUTTON_BORDER_WIDTH_DP = 1f;
     /** Defines the default gap between extra keys buttons, in dp. */
     public static final float DEFAULT_BUTTON_GAP_DP = 2f;
+    /** Defines the default radius of the glowing fade around the border, in dp. */
+    public static final float DEFAULT_BUTTON_GLOW_DP = 6f;
 
     /** Defines the minimum allowed duration in milliseconds for {@link #mLongPressTimeout}. */
     public static final int MIN_LONG_PRESS_DURATION = 200;
@@ -182,6 +190,8 @@ public final class ExtraKeysView extends GridLayout {
     private Typeface mButtonTypeface = null;
     /** The gap between buttons in pixels. */
     private int mButtonGap = 0;
+    /** The radius of the glowing fade around the button border, in pixels. */
+    private float mButtonGlowRadius = 0f;
 
 
     /**
@@ -277,15 +287,19 @@ public final class ExtraKeysView extends GridLayout {
      * @param textSizeSp The text size in sp, or {@code <= 0} to keep the platform default.
      * @param typeface The typeface, or {@code null} to keep the platform default.
      * @param gap The gap between buttons in pixels.
+     * @param glowRadius The radius of the glowing fade around the border in pixels,
+     *                   or {@code 0} to disable the glow.
      */
     public void setButtonAppearance(int borderColor, float borderWidth, float cornerRadius,
-                                    float textSizeSp, @Nullable Typeface typeface, int gap) {
+                                    float textSizeSp, @Nullable Typeface typeface, int gap,
+                                    float glowRadius) {
         mButtonBorderColor = borderColor;
         mButtonBorderWidth = Math.max(0f, borderWidth);
         mButtonCornerRadius = Math.max(0f, cornerRadius);
         mButtonTextSizeSp = textSizeSp;
         mButtonTypeface = typeface;
         mButtonGap = Math.max(0, gap);
+        mButtonGlowRadius = Math.max(0f, glowRadius);
         applyAppearanceToButtons();
     }
 
@@ -312,18 +326,105 @@ public final class ExtraKeysView extends GridLayout {
 
     /** Builds a rounded/bordered background drawable for the given state color. */
     private Drawable createButtonBackground(int color) {
-        GradientDrawable drawable = new GradientDrawable();
-        drawable.setShape(GradientDrawable.RECTANGLE);
-        drawable.setColor(color);
-        drawable.setCornerRadius(mButtonCornerRadius);
-        if (mButtonBorderWidth > 0f)
-            drawable.setStroke(Math.max(1, Math.round(mButtonBorderWidth)), mButtonBorderColor);
-        return drawable;
+        return new GlowDrawable(color, mButtonBorderColor, mButtonBorderWidth,
+                mButtonCornerRadius, mButtonGlowRadius);
     }
 
     /** Switches a button between its idle and pressed backgrounds without losing rounding/border. */
     private void setButtonBackground(View view, boolean active) {
         view.setBackground(createButtonBackground(active ? mButtonActiveBackgroundColor : mButtonBackgroundColor));
+    }
+
+    /**
+     * Draws the key fill, a soft glowing fade in the border color and a crisp border line.
+     * The glow is drawn inside the view bounds, so it never overlaps adjacent keys.
+     */
+    private static final class GlowDrawable extends Drawable {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final RectF rect = new RectF();
+        private final RectF ring = new RectF();
+        private final int fillColor;
+        private final int borderColor;
+        private final float borderWidth;
+        private final float cornerRadius;
+        private final float glowRadius;
+
+        GlowDrawable(int fillColor, int borderColor, float borderWidth,
+                     float cornerRadius, float glowRadius) {
+            this.fillColor = fillColor;
+            this.borderColor = borderColor;
+            this.borderWidth = Math.max(0f, borderWidth);
+            this.cornerRadius = Math.max(0f, cornerRadius);
+            this.glowRadius = Math.max(0f, glowRadius);
+        }
+
+        @Override
+        public void draw(@NonNull Canvas canvas) {
+            Rect bounds = getBounds();
+            if (bounds.isEmpty())
+                return;
+            rect.set(bounds);
+
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(fillColor);
+            canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint);
+
+            int borderAlpha = Color.alpha(borderColor);
+            if (borderAlpha == 0)
+                return;
+
+            // Soft fade: several concentric rings, each slightly narrower and stronger.
+            if (glowRadius > 0f) {
+                int steps = 7;
+                float maxGlow = Math.min(glowRadius,
+                        Math.min(rect.width(), rect.height()) * 0.45f);
+                float baseWidth = Math.max(borderWidth, 1f);
+                paint.setStyle(Paint.Style.STROKE);
+                for (int i = steps; i >= 1; i--) {
+                    float fraction = i / (float) steps; // 1 = widest ring, deepest inward
+                    float width = baseWidth + maxGlow * fraction;
+                    float inset = width / 2f;
+                    ring.set(rect.left + inset, rect.top + inset,
+                            rect.right - inset, rect.bottom - inset);
+                    if (ring.width() <= 0f || ring.height() <= 0f)
+                        continue;
+                    int alpha = Math.round(borderAlpha * (0.42f - 0.24f * fraction));
+                    if (alpha <= 0)
+                        continue;
+                    paint.setStrokeWidth(width);
+                    paint.setColor((borderColor & 0x00FFFFFF) | (alpha << 24));
+                    float radius = Math.max(0f, cornerRadius - inset);
+                    canvas.drawRoundRect(ring, radius, radius, paint);
+                }
+            }
+
+            // Crisp border line on top of the glow.
+            if (borderWidth > 0f) {
+                float inset = borderWidth / 2f;
+                ring.set(rect.left + inset, rect.top + inset,
+                        rect.right - inset, rect.bottom - inset);
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setStrokeWidth(borderWidth);
+                paint.setColor(borderColor);
+                float radius = Math.max(0f, cornerRadius - inset);
+                canvas.drawRoundRect(ring, radius, radius, paint);
+            }
+        }
+
+        @Override
+        public void setAlpha(int alpha) {
+            // Colors already carry their own alpha; not used by the extra keys view.
+        }
+
+        @Override
+        public void setColorFilter(@Nullable ColorFilter colorFilter) {
+            // Not used by the extra keys view.
+        }
+
+        @Override
+        public int getOpacity() {
+            return PixelFormat.TRANSLUCENT;
+        }
     }
 
     /** Set {@link #mLongPressTimeout}. */

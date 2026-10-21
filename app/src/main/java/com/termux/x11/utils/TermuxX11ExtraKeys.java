@@ -94,7 +94,8 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
                 dp(prefs.extraKeysBorderRadius.get()),
                 prefs.extraKeysTextSize.get(),
                 ExtraKeysThemes.typeface(prefs.extraKeysFont.get()),
-                Math.round(dp(prefs.extraKeysKeyGap.get())));
+                Math.round(dp(prefs.extraKeysKeyGap.get())),
+                dp(prefs.extraKeysGlowRadius.get()));
     }
 
     private float dp(int value) {
