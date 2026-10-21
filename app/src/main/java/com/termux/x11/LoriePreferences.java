@@ -400,10 +400,10 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                     updateColorPreference(p, p instanceof EditTextPreference
                             ? ((EditTextPreference) p).getText() : null);
 
-                if ("extraKeysBorderWidthTenths".contentEquals(p.getKey()))
+                if ("extraKeysBorderWidthTenths".equals(p.getKey()))
                     p.setSummary(formatBorderWidth(prefs.extraKeysBorderWidthTenths.get()));
 
-                if ("extraKeysBorderImage".contentEquals(p.getKey()))
+                if ("extraKeysBorderImage".equals(p.getKey()))
                     updateBorderImageSummary(p);
             }
 
@@ -766,7 +766,7 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
             if (isExtraKeysColorKey(key))
                 updateColorPreference(preference, (String) newValue);
 
-            if ("extraKeysBorderWidthTenths".contentEquals(key))
+            if ("extraKeysBorderWidthTenths".equals(key))
                 preference.setSummary(formatBorderWidth((Integer) newValue));
 
             if ("enableAccessibilityServiceAutomatically".contentEquals(key)) {
@@ -812,11 +812,11 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                 showColorPicker(preference);
                 return;
             }
-            if ("extraKeysBorderImage".contentEquals(preference.getKey())) {
+            if ("extraKeysBorderImage".equals(preference.getKey())) {
                 showBorderImageDialog(preference);
                 return;
             }
-            if ("extra_keys_config".contentEquals(preference.getKey())) {
+            if ("extra_keys_config".equals(preference.getKey())) {
                 @SuppressLint("InflateParams")
                 View view = getLayoutInflater().inflate(R.layout.extra_keys_config, null, false);
                 EditText config = view.findViewById(R.id.extra_keys_config);
