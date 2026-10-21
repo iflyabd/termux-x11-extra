@@ -131,6 +131,66 @@
         <item>custom</item>
         <item>none</item>
     </string-array>
+
+    <!-- Additional keyboard (extra keys bar) theming -->
+    <string-array name="extraKeysThemeEntries">
+        <item>Custom</item>
+        <item>Termux (red)</item>
+        <item>Dracula</item>
+        <item>Nord</item>
+        <item>Solarized Dark</item>
+        <item>Monochrome</item>
+        <item>Amber</item>
+        <item>Ocean</item>
+        <item>Matrix</item>
+    </string-array>
+    <string-array name="extraKeysThemeValues">
+        <item>custom</item>
+        <item>termux</item>
+        <item>dracula</item>
+        <item>nord</item>
+        <item>solarized</item>
+        <item>mono</item>
+        <item>amber</item>
+        <item>ocean</item>
+        <item>matrix</item>
+    </string-array>
+    <string-array name="extraKeysLayoutEntries">
+        <item>Custom (JSON config)</item>
+        <item>9 x 4</item>
+        <item>10 x 4</item>
+        <item>11 x 4</item>
+        <item>10 x 5</item>
+        <item>11 x 5</item>
+    </string-array>
+    <string-array name="extraKeysLayoutValues">
+        <item>custom</item>
+        <item>9x4</item>
+        <item>10x4</item>
+        <item>11x4</item>
+        <item>10x5</item>
+        <item>11x5</item>
+    </string-array>
+    <string-array name="extraKeysFontEntries">
+        <item>Default</item>
+        <item>Sans serif</item>
+        <item>Serif</item>
+        <item>Monospace</item>
+        <item>Condensed</item>
+        <item>Light</item>
+        <item>Casual</item>
+        <item>Cursive</item>
+    </string-array>
+    <string-array name="extraKeysFontValues">
+        <item>default</item>
+        <item>sans-serif</item>
+        <item>serif</item>
+        <item>monospace</item>
+        <item>sans-serif-condensed</item>
+        <item>sans-serif-light</item>
+        <item>casual</item>
+        <item>cursive</item>
+    </string-array>
 </resources>
 
 <!-- Gamepad preferences arrays (will be appended) -->

@@ -111,6 +111,23 @@ E.g. <b>META</b> for <i>META key</i>, \n
     <string name="lorie_pref_useTermuxEKBarBehaviour_summary">Use long-tap to lock special keys</string>
     <string name="lorie_pref_opacityEKBar">Opacity of extra keys bar, %</string>
     <string name="lorie_pref_extra_keys_config">Extra keys config</string>
+    <string name="lorie_pref_extraKeysAppearance">Appearance and theme</string>
+    <string name="lorie_pref_extraKeysAppearance_summary">Colors, rounded key borders, font, text size and theme palettes</string>
+    <string name="lorie_pref_extraKeysTheme">Theme palette</string>
+    <string name="lorie_pref_extraKeysTheme_summary">Ready-made palettes; picking one fills the colors below. Edit any color to make it custom.</string>
+    <string name="lorie_pref_extraKeysLayout">Grid layout</string>
+    <string name="lorie_pref_extraKeysLayout_summary">Ready-made key grids. \"Custom\" keeps the JSON below; choosing a preset overrides it until you switch back to Custom.</string>
+    <string name="lorie_pref_extraKeysHeightPercent">Bar height, %</string>
+    <string name="lorie_pref_extraKeysBackgroundColor">Key background color (ARGB)</string>
+    <string name="lorie_pref_extraKeysTextColor">Key text color (ARGB)</string>
+    <string name="lorie_pref_extraKeysActiveTextColor">Pressed key text color (ARGB)</string>
+    <string name="lorie_pref_extraKeysActiveBackgroundColor">Pressed key background color (ARGB)</string>
+    <string name="lorie_pref_extraKeysBorderColor">Key border color (ARGB)</string>
+    <string name="lorie_pref_extraKeysBorderWidth">Key border width, dp</string>
+    <string name="lorie_pref_extraKeysBorderRadius">Key corner radius, dp</string>
+    <string name="lorie_pref_extraKeysKeyGap">Gap between keys, dp</string>
+    <string name="lorie_pref_extraKeysTextSize">Key text size, sp</string>
+    <string name="lorie_pref_extraKeysFont">Key font</string>
 
     <string name="lorie_pref_swipeUpAction">Three finger swipe up</string>
     <string name="lorie_pref_swipeDownAction">Three finger swipe down</string>

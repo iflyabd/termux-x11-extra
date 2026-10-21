@@ -61,6 +61,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.termux.x11.utils.ExtraKeysLayouts;
+import com.termux.x11.utils.ExtraKeysThemes;
 import com.termux.x11.utils.KeyInterceptor;
 import com.termux.x11.utils.PresetManager;
 import com.termux.x11.utils.SamsungDexUtils;
@@ -610,6 +612,26 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                 }
             }
 
+            if ("extraKeysTheme".contentEquals(key)) {
+                ExtraKeysThemes.Palette palette = ExtraKeysThemes.get((String) newValue);
+                if (palette != null) {
+                    prefs.extraKeysTextColor.put(palette.text);
+                    prefs.extraKeysActiveTextColor.put(palette.activeText);
+                    prefs.extraKeysBackgroundColor.put(palette.background);
+                    prefs.extraKeysActiveBackgroundColor.put(palette.activeBackground);
+                    prefs.extraKeysBorderColor.put(palette.border);
+                    prefs.extraKeysBorderRadius.put(palette.radiusDp);
+                    prefs.extraKeysBorderWidth.put(palette.borderWidthDp);
+                    prefs.extraKeysTextSize.put(palette.textSizeSp);
+                    prefs.extraKeysKeyGap.put(palette.keyGapDp);
+                }
+            } else if (key.startsWith("extraKeys")
+                    && !"extraKeysLayout".contentEquals(key)
+                    && !"extraKeysHeightPercent".contentEquals(key)) {
+                // A manual color/font/size tweak means the bar no longer matches a ready-made palette.
+                prefs.extraKeysTheme.put(ExtraKeysThemes.CUSTOM);
+            }
+
             if ("showAdditionalKbd".contentEquals(key) && (Boolean) newValue)
                 prefs.additionalKbdVisible.put(true);
 
@@ -638,6 +660,14 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
             return true;
         }
 
+        private void notifyExtraKeysConfigChanged() {
+            requireContext().sendBroadcast(new Intent(ACTION_PREFERENCES_CHANGED) {{
+                putExtra("key", "extra_keys_config");
+                putExtra("fromBroadcast", true);
+                setPackage("com.termux.x11");
+            }});
+        }
+
         @Override
         public void onDisplayPreferenceDialog(@NonNull Preference preference) {
             if ("extra_keys_config".contentEquals(preference.getKey())) {
@@ -657,10 +687,16 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
                                 (dialog, whichButton) -> {
                                     String text = config.getText().toString();
                                     prefs.extra_keys_config.put(!text.isEmpty() ? text : TermuxX11ExtraKeys.DEFAULT_IVALUE_EXTRA_KEYS);
+                                    prefs.extraKeysLayout.put(ExtraKeysLayouts.CUSTOM);
+                                    notifyExtraKeysConfigChanged();
                                 }
                         )
                         .setNeutralButton("Reset",
-                                (dialog, whichButton) -> prefs.extra_keys_config.put(TermuxX11ExtraKeys.DEFAULT_IVALUE_EXTRA_KEYS))
+                                (dialog, whichButton) -> {
+                                    prefs.extra_keys_config.put(TermuxX11ExtraKeys.DEFAULT_IVALUE_EXTRA_KEYS);
+                                    prefs.extraKeysLayout.put(ExtraKeysLayouts.CUSTOM);
+                                    notifyExtraKeysConfigChanged();
+                                })
                         .setNegativeButton("Cancel", (dialog, whichButton) -> dialog.dismiss())
                         .create()
                         .show();
@@ -973,6 +1009,10 @@ public class LoriePreferences extends AppCompatActivity implements PreferenceFra
 
             public int defValue() {
                 return preferences.getInt(key, (int) defValue);
+            }
+
+            public void put(int v) {
+                preferences.edit().putInt(key, v).commit();
             }
         }
 

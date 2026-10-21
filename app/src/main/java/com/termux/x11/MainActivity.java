@@ -1016,7 +1016,8 @@ public class MainActivity extends AppCompatActivity {
 
         ViewGroup.LayoutParams layoutParams = pager.getLayoutParams();
         layoutParams.height = Math.round(37.5f * getResources().getDisplayMetrics().density *
-                (TermuxX11ExtraKeys.getExtraKeysInfo() == null ? 0 : TermuxX11ExtraKeys.getExtraKeysInfo().getMatrix().length));
+                (TermuxX11ExtraKeys.getExtraKeysInfo() == null ? 0 : TermuxX11ExtraKeys.getExtraKeysInfo().getMatrix().length) *
+                (prefs.extraKeysHeightPercent.get() / 100f));
         pager.setLayoutParams(layoutParams);
 
         frm.setPadding(0, 0, 0, prefs.adjustHeightForEK.get() && showNow ? layoutParams.height : 0);

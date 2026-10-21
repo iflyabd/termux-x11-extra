@@ -272,9 +272,102 @@
             app:seekBarIncrement="1"
             app:showSeekBarValue="true"
             app:updatesContinuously="true" />
+        <ListPreference
+            app:key="extraKeysLayout"
+            app:title="@string/lorie_pref_extraKeysLayout"
+            app:summary="@string/lorie_pref_extraKeysLayout_summary"
+            app:defaultValue="custom"
+            app:entries="@array/extraKeysLayoutEntries"
+            app:entryValues="@array/extraKeysLayoutValues" />
+        <SeekBarPreference
+            app:key="extraKeysHeightPercent"
+            app:title="@string/lorie_pref_extraKeysHeightPercent"
+            app:defaultValue="100"
+            app:min="60"
+            android:max="200"
+            app:seekBarIncrement="5"
+            app:showSeekBarValue="true"
+            app:updatesContinuously="true" />
+        <Preference
+            app:key="extraKeysAppearance"
+            app:title="@string/lorie_pref_extraKeysAppearance"
+            app:summary="@string/lorie_pref_extraKeysAppearance_summary"
+            app:fragment="ekbar_theme" />
         <EditTextPreference
             app:key="extra_keys_config"
             app:title="@string/lorie_pref_extra_keys_config" />
+    </PreferenceScreen>
+
+    <PreferenceScreen app:key="ekbar_theme" app:title="@string/lorie_pref_extraKeysAppearance">
+        <ListPreference
+            app:key="extraKeysTheme"
+            app:title="@string/lorie_pref_extraKeysTheme"
+            app:summary="@string/lorie_pref_extraKeysTheme_summary"
+            app:defaultValue="termux"
+            app:entries="@array/extraKeysThemeEntries"
+            app:entryValues="@array/extraKeysThemeValues" />
+        <EditTextPreference
+            app:key="extraKeysBackgroundColor"
+            app:title="@string/lorie_pref_extraKeysBackgroundColor"
+            app:defaultValue="#00000000" />
+        <EditTextPreference
+            app:key="extraKeysTextColor"
+            app:title="@string/lorie_pref_extraKeysTextColor"
+            app:defaultValue="#FFFFFFFF" />
+        <EditTextPreference
+            app:key="extraKeysActiveTextColor"
+            app:title="@string/lorie_pref_extraKeysActiveTextColor"
+            app:defaultValue="#FFFF0000" />
+        <EditTextPreference
+            app:key="extraKeysActiveBackgroundColor"
+            app:title="@string/lorie_pref_extraKeysActiveBackgroundColor"
+            app:defaultValue="#FF7F7F7F" />
+        <EditTextPreference
+            app:key="extraKeysBorderColor"
+            app:title="@string/lorie_pref_extraKeysBorderColor"
+            app:defaultValue="#33FFFFFF" />
+        <SeekBarPreference
+            app:key="extraKeysBorderWidth"
+            app:title="@string/lorie_pref_extraKeysBorderWidth"
+            app:defaultValue="1"
+            app:min="0"
+            android:max="8"
+            app:seekBarIncrement="1"
+            app:showSeekBarValue="true"
+            app:updatesContinuously="true" />
+        <SeekBarPreference
+            app:key="extraKeysBorderRadius"
+            app:title="@string/lorie_pref_extraKeysBorderRadius"
+            app:defaultValue="6"
+            app:min="0"
+            android:max="30"
+            app:seekBarIncrement="1"
+            app:showSeekBarValue="true"
+            app:updatesContinuously="true" />
+        <SeekBarPreference
+            app:key="extraKeysKeyGap"
+            app:title="@string/lorie_pref_extraKeysKeyGap"
+            app:defaultValue="2"
+            app:min="0"
+            android:max="10"
+            app:seekBarIncrement="1"
+            app:showSeekBarValue="true"
+            app:updatesContinuously="true" />
+        <SeekBarPreference
+            app:key="extraKeysTextSize"
+            app:title="@string/lorie_pref_extraKeysTextSize"
+            app:defaultValue="14"
+            app:min="8"
+            android:max="28"
+            app:seekBarIncrement="1"
+            app:showSeekBarValue="true"
+            app:updatesContinuously="true" />
+        <ListPreference
+            app:key="extraKeysFont"
+            app:title="@string/lorie_pref_extraKeysFont"
+            app:defaultValue="default"
+            app:entries="@array/extraKeysFontEntries"
+            app:entryValues="@array/extraKeysFontValues" />
     </PreferenceScreen>
 
     <PreferenceScreen app:key="userActions" app:title="@string/lorie_pref_userActions">

@@ -29,6 +29,7 @@ import com.termux.shared.termux.extrakeys.*;
 import com.termux.x11.LoriePreferences;
 import com.termux.x11.LorieView;
 import com.termux.x11.MainActivity;
+import com.termux.x11.Prefs;
 import com.termux.x11.R;
 import com.termux.x11.VirtualKeyMapperActivity;
 import com.termux.x11.MainActivity;
@@ -58,14 +59,46 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
         mEventListener = eventlistener;
         mActivity = activity;
         mExtraKeysView = extrakeysview;
-        // Enforce Termux FDroid style: active special buttons (CTRL/ALT/...) show RED text when enabled.
-        // Matches screenshot: CTRL red when pressed. Defaults in ExtraKeysView are WHITE normal / RED active.
-        mExtraKeysView.setButtonColors(
-            ExtraKeysView.DEFAULT_BUTTON_TEXT_COLOR,
-            0xFFFF0000, // RED active (same as Termux app)
-            ExtraKeysView.DEFAULT_BUTTON_BACKGROUND_COLOR,
-            ExtraKeysView.DEFAULT_BUTTON_ACTIVE_BACKGROUND_COLOR);
+        applyAppearanceFromPreferences();
         mClipboardManager = (ClipboardManager) mActivity.getSystemService(Context.CLIPBOARD_SERVICE);
+    }
+
+    /** Applies the user-selected colors, rounded borders, font and text size to the extra keys bar. */
+    private void applyAppearanceFromPreferences() {
+        Prefs prefs = MainActivity.getPrefs();
+        if (prefs == null) {
+            // Fallback used only if the view is inflated before preferences are ready.
+            mExtraKeysView.setButtonColors(
+                    ExtraKeysView.DEFAULT_BUTTON_TEXT_COLOR,
+                    ExtraKeysView.DEFAULT_BUTTON_ACTIVE_TEXT_COLOR,
+                    ExtraKeysView.DEFAULT_BUTTON_BACKGROUND_COLOR,
+                    ExtraKeysView.DEFAULT_BUTTON_ACTIVE_BACKGROUND_COLOR);
+            return;
+        }
+
+        int textColor = ExtraKeysThemes.parseColor(prefs.extraKeysTextColor.get(),
+                ExtraKeysView.DEFAULT_BUTTON_TEXT_COLOR);
+        int activeTextColor = ExtraKeysThemes.parseColor(prefs.extraKeysActiveTextColor.get(),
+                ExtraKeysView.DEFAULT_BUTTON_ACTIVE_TEXT_COLOR);
+        int backgroundColor = ExtraKeysThemes.parseColor(prefs.extraKeysBackgroundColor.get(),
+                ExtraKeysView.DEFAULT_BUTTON_BACKGROUND_COLOR);
+        int activeBackgroundColor = ExtraKeysThemes.parseColor(prefs.extraKeysActiveBackgroundColor.get(),
+                ExtraKeysView.DEFAULT_BUTTON_ACTIVE_BACKGROUND_COLOR);
+        int borderColor = ExtraKeysThemes.parseColor(prefs.extraKeysBorderColor.get(),
+                ExtraKeysView.DEFAULT_BUTTON_BORDER_COLOR);
+
+        mExtraKeysView.setButtonColors(textColor, activeTextColor, backgroundColor, activeBackgroundColor);
+        mExtraKeysView.setButtonAppearance(
+                borderColor,
+                dp(prefs.extraKeysBorderWidth.get()),
+                dp(prefs.extraKeysBorderRadius.get()),
+                prefs.extraKeysTextSize.get(),
+                ExtraKeysThemes.typeface(prefs.extraKeysFont.get()),
+                dp(prefs.extraKeysKeyGap.get()));
+    }
+
+    private float dp(int value) {
+        return value * mActivity.getResources().getDisplayMetrics().density;
     }
 
     private final KeyCharacterMap mVirtualKeyboardKeyCharacterMap = KeyCharacterMap.load(KeyCharacterMap.VIRTUAL_KEYBOARD);
@@ -275,11 +308,16 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
     public static void setExtraKeys() {
         mExtraKeysInfo = null;
 
+        Prefs prefs = MainActivity.getPrefs();
+        // A ready-made layout overrides the JSON config; "custom" keeps the user's JSON.
+        String layoutJson = prefs == null ? null : ExtraKeysLayouts.build(prefs.extraKeysLayout.get());
+        String extrakeys = layoutJson != null ? layoutJson
+                : (prefs != null ? prefs.extra_keys_config.get() : DEFAULT_IVALUE_EXTRA_KEYS);
+
         try {
             // The mMap stores the extra key and style string values while loading properties
             // Check {@link #getExtraKeysInternalPropertyValueFromValue(String)} and
             // {@link #getExtraKeysStyleInternalPropertyValueFromValue(String)}
-            String extrakeys = MainActivity.getPrefs().extra_keys_config.get();
             mExtraKeysInfo = new ExtraKeysInfo(extrakeys, "extra-keys-style", ExtraKeysConstants.CONTROL_CHARS_ALIASES);
         } catch (JSONException e) {
             Toast.makeText(getInstance(), "Could not load and set the \"extra-keys\" property from the properties file: " + e, Toast.LENGTH_LONG).show();
