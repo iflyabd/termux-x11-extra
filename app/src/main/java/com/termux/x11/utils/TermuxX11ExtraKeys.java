@@ -138,6 +138,7 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
             // Workaround for SPECIAL keys (evdev scancodes)
             switch (key) {
                 // Control/navigation
+                case "SPACE": scanCode = 57;  break;
                 case "ESC":   scanCode = 1;   break;
                 case "TAB":   scanCode = 15;  break;
                 case "ENTER": scanCode = 28;  break;
@@ -168,8 +169,10 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
                 case "F12": scanCode = 88; break;
             }
 
-            mActivity.getLorieView().sendKeyEvent(scanCode, scanCode, true);
-            mActivity.getLorieView().sendKeyEvent(scanCode, scanCode, false);
+            // Pass the Android keycode as fallback: native uses scanCode when non-zero and
+            // otherwise maps keyCode (this is what makes SPACE work — it has no scanCode entry).
+            mActivity.getLorieView().sendKeyEvent(scanCode, keyCode, true);
+            mActivity.getLorieView().sendKeyEvent(scanCode, keyCode, false);
 
         }
         else if (key != null) {

@@ -5,6 +5,8 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.KeyEvent;
@@ -21,6 +23,7 @@ import com.termux.x11.input.GamepadInputHandler;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public class VirtualKeyHandler {
     private final Context context;
@@ -34,6 +37,30 @@ public class VirtualKeyHandler {
     private float lastTouchX;
     private float lastTouchY;
     private boolean isMouseTrackingActive = false;
+
+    /**
+     * Mouse-wheel extra keys (Mouse_Scroll_Up / Down / Left / Right) are not normal
+     * mouse buttons: a tap must emit one wheel notch and holding the button must
+     * keep scrolling. This handler repeats the notch while the button stays pressed.
+     */
+    private static final long SCROLL_REPEAT_DELAY_MS = 350;
+    private static final long SCROLL_REPEAT_INTERVAL_MS = 90;
+    /** One wheel notch in the native 120-unit scroll valuator scale. */
+    private static final float SCROLL_NOTCH = 120f;
+
+    private final Handler scrollRepeatHandler = new Handler(Looper.getMainLooper());
+    private int scrollPointerId = -1;
+    private String scrollRepeatKey = null;
+    private View scrollButton = null;
+
+    private final Runnable scrollRepeatRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (scrollRepeatKey == null) return;
+            sendWheelNotch(scrollRepeatKey);
+            scrollRepeatHandler.postDelayed(this, SCROLL_REPEAT_INTERVAL_MS);
+        }
+    };
 
     // Constructor
     public VirtualKeyHandler(Context context,
@@ -84,6 +111,19 @@ public class VirtualKeyHandler {
                         lastTouchX = event.getRawX();
                         lastTouchY = event.getRawY();
                         isMouseTrackingActive = true;
+                        return true;
+                    }
+
+                    // Wheel keys: emit one notch right away, then repeat while held.
+                    String scrollKey = scrollKeyFromTag(tag);
+                    if (scrollKey != null) {
+                        scrollRepeatHandler.removeCallbacks(scrollRepeatRunnable);
+                        scrollPointerId = pointerId;
+                        scrollRepeatKey = scrollKey;
+                        scrollButton = button;
+                        sendWheelNotch(scrollKey);
+                        scrollRepeatHandler.postDelayed(scrollRepeatRunnable, SCROLL_REPEAT_DELAY_MS);
+                        button.setPressed(true);
                         return true;
                     }
 
@@ -162,6 +202,15 @@ public class VirtualKeyHandler {
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_POINTER_UP:
                 case MotionEvent.ACTION_CANCEL:
+                    if (scrollRepeatKey != null && pointerId == scrollPointerId) {
+                        scrollRepeatHandler.removeCallbacks(scrollRepeatRunnable);
+                        scrollRepeatKey = null;
+                        scrollPointerId = -1;
+                        scrollButton = null;
+                        button.setPressed(false);
+                        return true;
+                    }
+
                     if (tag.contains("Mouse_Track")) {
                         isMouseTrackingActive = false;
                         lastTouchX = -1;
@@ -187,6 +236,22 @@ public class VirtualKeyHandler {
                     break;
             }
             return true;
+        });
+
+        // Never keep scrolling after the bar is replaced (preset switch) mid-press.
+        button.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View v) { }
+
+            @Override
+            public void onViewDetachedFromWindow(View v) {
+                if (v == scrollButton) {
+                    scrollRepeatHandler.removeCallbacks(scrollRepeatRunnable);
+                    scrollRepeatKey = null;
+                    scrollPointerId = -1;
+                    scrollButton = null;
+                }
+            }
         });
     }
 
@@ -408,12 +473,95 @@ public class VirtualKeyHandler {
             case "Mouse_Left": return 1;
             case "Mouse_Middle": return 2;
             case "Mouse_Right": return 3;
-            default: return 0;
+            default: return -1;
+        }
+    }
+
+    /**
+     * Mouse-wheel extra-key tags. Accepts the mapper's canonical names as well as a
+     * few common variants and any letter case, since preset JSONs are user-edited.
+     *
+     * @return canonical key ("MOUSE_SCROLL_UP", ...) or null when the tag is not a wheel key.
+     */
+    private static String scrollKeyFromTag(String tag) {
+        if (tag == null) return null;
+        for (String raw : tag.split("\\+")) {
+            String key = raw.trim();
+            if (key.contains(":")) key = key.split(":")[0].trim();
+            String norm = key.toUpperCase(Locale.ROOT).replace('-', '_').replace(' ', '_');
+            switch (norm) {
+                case "MOUSE_SCROLL_UP":
+                case "MOUSEWHEEL_UP":
+                case "SCROLL_UP":
+                    return "MOUSE_SCROLL_UP";
+                case "MOUSE_SCROLL_DOWN":
+                case "MOUSEWHEEL_DOWN":
+                case "SCROLL_DOWN":
+                    return "MOUSE_SCROLL_DOWN";
+                case "MOUSE_SCROLL_LEFT":
+                case "MOUSEWHEEL_LEFT":
+                case "SCROLL_LEFT":
+                    return "MOUSE_SCROLL_LEFT";
+                case "MOUSE_SCROLL_RIGHT":
+                case "MOUSEWHEEL_RIGHT":
+                case "SCROLL_RIGHT":
+                    return "MOUSE_SCROLL_RIGHT";
+                default:
+                    break;
+            }
+        }
+        return null;
+    }
+
+    /** Sends exactly one wheel notch. Positive vertical = wheel down, positive horizontal = right. */
+    private void sendWheelNotch(String key) {
+        if (lorieView == null || key == null) return;
+        switch (key) {
+            case "MOUSE_SCROLL_UP":
+                lorieView.sendMouseWheelEvent(0f, -SCROLL_NOTCH);
+                break;
+            case "MOUSE_SCROLL_DOWN":
+                lorieView.sendMouseWheelEvent(0f, SCROLL_NOTCH);
+                break;
+            case "MOUSE_SCROLL_LEFT":
+                lorieView.sendMouseWheelEvent(-SCROLL_NOTCH, 0f);
+                break;
+            case "MOUSE_SCROLL_RIGHT":
+                lorieView.sendMouseWheelEvent(SCROLL_NOTCH, 0f);
+                break;
         }
     }
 
     private int getKeyEventCode(String key) {
         if (key == null) return -1;
+        if (key.length() == 1) {
+            char c = key.charAt(0);
+            if (c >= 'a' && c <= 'z')
+                key = key.toUpperCase(Locale.ROOT);
+        }
+        // Case-insensitive aliases so uppercase names from imported JSON presets
+        // (e.g. "SPACE") work the same as the mapper's canonical names.
+        switch (key.toUpperCase(Locale.ROOT)) {
+            case "SPACE": return 57;
+            case "ENTER": return 28;
+            case "BACKSPACE": return 14;
+            case "TAB": return 15;
+            case "ESC":
+            case "ESCAPE": return 1;
+            case "DELETE": return 111;
+            case "INSERT": return 110;
+            case "HOME": return 102;
+            case "END": return 107;
+            case "PAGE UP":
+            case "PGUP": return 104;
+            case "PAGE DOWN":
+            case "PGDN": return 109;
+            case "CTRL":
+            case "CONTROL": return 29;
+            case "SHIFT": return 42;
+            case "ALT": return 56;
+            default: break;
+        }
         switch (key) {
             case "A":
                 return 30;
