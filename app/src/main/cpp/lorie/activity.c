@@ -159,7 +159,7 @@ static int xcallback(int fd, int events, __unused void* data) {
                     memset(clipboard, 0, e.clipboardSend.count + 1);
                     read(conn_fd, clipboard, sizeof(clipboard));
                     clipboard[e.clipboardSend.count] = 0;
-                    log(DEBUG, "Clipboard content (%zu symbols) is %s", strlen(clipboard), clipboard);
+                    log(DEBUG, "Clipboard content received (%zu bytes)", strlen(clipboard));
                     jmethodID id = (*env)->GetMethodID(env, (*env)->GetObjectClass(env, thiz), "setClipboardText","(Ljava/lang/String;)V");
                     jobject bb = (*env)->NewDirectByteBuffer(env, clipboard, strlen(clipboard));
                     jobject charset = (*env)->CallStaticObjectMethod(env, Charset.self, Charset.forName, (*env)->NewStringUTF(env, "UTF-8"));

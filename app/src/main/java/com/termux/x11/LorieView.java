@@ -871,7 +871,8 @@ public class LorieView extends SurfaceView implements InputStub {
 
         lastAndroidClipboardText = text;
         sendClipboardEvent(text.getBytes(UTF_8));
-        Log.d("CLIP", "sending clipboard contents: " + text);
+        // Never log the clipboard text itself: it may contain passwords or tokens.
+        Log.d("CLIP", "sending clipboard contents (" + text.length() + " chars)");
     }
 
     public void handleClipboardChange() {
