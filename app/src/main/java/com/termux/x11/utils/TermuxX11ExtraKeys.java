@@ -62,15 +62,15 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
     /**
      * Default extra-keys JSON: a PC/hacker-style 5x11 keyboard.
      *
-     * <p>First row: volume and media keys (each media key has the matching X11 media
-     * key as popup), F11/F12 and the wheel keys. Then the usual function key row
-     * (F11/F12 as popups of F9/F10, settings as F8 popup) with the mouse buttons,
-     * the letter/navigation rows and finally the modifiers and the arrow keys.</p>
+     * <p>First row: the phone volume keys (swipe up for the same key inside the X11
+     * session), the Android media keys (swipe up for the X11 media key), `F11`/`F12`
+     * and the wheel keys. Then the function key row, the letter/navigation rows and
+     * finally the modifiers and the arrow keys.</p>
      *
      * <p>See {@code wiki.md} for the full key reference (including MOUSE_*, MEDIA_*,
-     * VOLUME_*).</p>
+     * VOLUME_*, X11_MEDIA_* and X11_VOLUME_*).</p>
      */
-    public static final String DEFAULT_IVALUE_EXTRA_KEYS = "[['VOLUME_MUTE','VOLUME_DOWN','VOLUME_UP',{key:'MEDIA_PREVIOUS',popup:'X11_MEDIA_PREVIOUS'},{key:'MEDIA_PLAY_PAUSE',popup:'X11_MEDIA_PLAY_PAUSE'},{key:'MEDIA_NEXT',popup:'X11_MEDIA_NEXT'},'F11','F12','MOUSE_SCROLL_LEFT','MOUSE_SCROLL_RIGHT','MOUSE_SCROLL_UP'],['F1','F2','F3','F4','F5','F6','F7',{key:'F8',popup:'DRAWER'},{key:'F9',popup:'F11'},{key:'F10',popup:'F12'},'MOUSE_LEFT'],['ESC','A',{key:'Z',popup:'|'},'R','P','HOME','PGUP','INS','KEYBOARD','MAPPER','MOUSE_MIDDLE'],['TAB','C','X','V','-','END','PGDN','UP','PREFERENCES',{key:'BACKSPACE',popup:'DELETE'},'MOUSE_RIGHT'],['SHIFT','META','CTRL','ALT','/',{key:'SPACE',popup:'MOUSE_HELPER'},'LEFT','DOWN','RIGHT','ENTER','MOUSE_SCROLL_DOWN']]";
+    public static final String DEFAULT_IVALUE_EXTRA_KEYS = "[[{key:'VOLUME_MUTE',popup:'X11_VOLUME_MUTE'},{key:'VOLUME_DOWN',popup:'X11_VOLUME_DOWN'},{key:'VOLUME_UP',popup:'X11_VOLUME_UP'},{key:'MEDIA_PREVIOUS',popup:'X11_MEDIA_PREVIOUS'},{key:'MEDIA_PLAY_PAUSE',popup:'X11_MEDIA_PLAY_PAUSE'},{key:'MEDIA_NEXT',popup:'X11_MEDIA_NEXT'},'F11','F12','MOUSE_SCROLL_LEFT','MOUSE_SCROLL_RIGHT','MOUSE_SCROLL_UP'],['F1','F2','F3','F4','F5','F6','F7',{key:'F8',popup:'DRAWER'},{key:'F9',popup:'F11'},{key:'F10',popup:'F12'},'MOUSE_LEFT'],['ESC','A',{key:'Z',popup:'|'},'R','P','HOME','PGUP','INS','KEYBOARD','MAPPER','MOUSE_MIDDLE'],['TAB','C','X','V',{key:'S',popup:'_'},'END','PGDN','UP','PREFERENCES',{key:'BACKSPACE',popup:'DELETE'},'MOUSE_RIGHT'],['SHIFT','META','CTRL','ALT','/',{key:'SPACE',popup:'MOUSE_HELPER'},'LEFT','DOWN','RIGHT','ENTER','MOUSE_SCROLL_DOWN']]";
 
     /** One wheel notch in the smooth-scroll units used by {@link LorieView#sendMouseWheelEvent}. */
     private static final float SCROLL_NOTCH = 120f;

@@ -14,7 +14,9 @@ the letter/navigation rows and the modifiers:
 
 ```json
 [
-  ["VOLUME_MUTE", "VOLUME_DOWN", "VOLUME_UP",
+  [{"key": "VOLUME_MUTE", "popup": "X11_VOLUME_MUTE"},
+   {"key": "VOLUME_DOWN", "popup": "X11_VOLUME_DOWN"},
+   {"key": "VOLUME_UP", "popup": "X11_VOLUME_UP"},
    {"key": "MEDIA_PREVIOUS", "popup": "X11_MEDIA_PREVIOUS"},
    {"key": "MEDIA_PLAY_PAUSE", "popup": "X11_MEDIA_PLAY_PAUSE"},
    {"key": "MEDIA_NEXT", "popup": "X11_MEDIA_NEXT"},
@@ -31,7 +33,7 @@ the letter/navigation rows and the modifiers:
    "HOME", "PGUP", "INS", "KEYBOARD", "MAPPER",
    "MOUSE_MIDDLE"],
 
-  ["TAB", "C", "X", "V", "-", "END", "PGDN", "UP",
+  ["TAB", "C", "X", "V", {"key": "S", "popup": "_"}, "END", "PGDN", "UP",
    "PREFERENCES", {"key": "BACKSPACE", "popup": "DELETE"},
    "MOUSE_RIGHT"],
 
@@ -44,14 +46,15 @@ the letter/navigation rows and the modifiers:
 
 What the rows contain:
 
-* **Row 1** – the phone's volume keys, the Android media keys (swipe up for the
+* **Row 1** – the phone's volume keys and the Android media keys (swipe up for the
   same key inside the X11 session), `F11`/`F12` and the horizontal/vertical
   wheel keys.
 * **Row 2** – `F1`–`F10` (swipe up on `F9`/`F10` for `F11`/`F12`, on `F8` for the
   settings) and the left mouse button.
 * **Row 3** – `ESC`, the letter keys, navigation and the app keys, plus the
   middle mouse button.
-* **Row 4** – the editing keys and `PREFERENCES`, plus the right mouse button.
+* **Row 4** – the editing keys, `S` (swipe up for `_`) and `PREFERENCES`, plus the
+  right mouse button.
 * **Row 5** – modifiers, space, the arrow keys and the wheel-up key.
 
 Single-quoted strings are also accepted by the parser (the built-in default
