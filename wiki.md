@@ -32,6 +32,15 @@ The repository default (also used by the *Reset* action in the JSON dialog) is:
 Single-quoted strings are also accepted by the parser (the built-in default
 uses them), but standard double-quoted JSON is recommended.
 
+> **One document only.** The whole configuration has to be a *single* JSON
+> array. If you paste two arrays (for example a new row and then the old
+> rows) the parser silently keeps only the **first** one and the remaining
+> rows never show up. To add a row, put it inside the same outer array:
+>
+> ```json
+> [["ROW1"],["ROW2"],["ROW3"]]
+> ```
+
 ## Format
 
 The value is an **array of rows**. Each row is an **array of cells**. All rows
@@ -119,6 +128,21 @@ Each press sends exactly **one wheel notch** (120 units).
 The mouse and scroll names are case-insensitive. The `MOUSE_` /
 `MOUSE_SCROLL_` prefixes guarantee that they can never collide with the arrow
 key names.
+
+### Short labels
+
+The long key names are too wide for a button, so the app shows a short label
+instead. You can always override it with `"display"`:
+
+| Key | Label |
+|-----|-------|
+| `MOUSE_LEFT`, `MOUSE_MIDDLE`, `MOUSE_RIGHT` | `🖱L`, `🖱M`, `🖱R` |
+| `MOUSE_SCROLL_UP` / `DOWN` / `LEFT` / `RIGHT` | `🖱▲`, `🖱▼`, `🖱◀`, `🖱▶` |
+| `MEDIA_PLAY` / `PAUSE` / `PLAY_PAUSE` | `▶`, `⏸`, `⏯` |
+| `MEDIA_STOP` / `NEXT` / `PREVIOUS` | `⏹`, `⏭`, `⏮` |
+| `MEDIA_REWIND` / `FAST_FORWARD` | `⏪`, `⏩` |
+| `X11_MEDIA_*` | the same symbol prefixed with `X` (`X⏯`, `X⏭`, ...) |
+| `VOLUME_UP` / `DOWN` / `MUTE` | `🔊`, `🔉`, `🔇` |
 
 ### Media keys
 

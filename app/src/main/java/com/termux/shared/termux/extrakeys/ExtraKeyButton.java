@@ -105,7 +105,7 @@ public class ExtraKeyButton {
             this.display = displayFromConfig;
         } else {
             this.display = Arrays.stream(keys)
-                .map(key -> extraKeyDisplayMap.get(key, key))
+                .map(key -> ExtraKeysConstants.getDisplayText(extraKeyDisplayMap, key))
                 .collect(Collectors.joining(" "));
         }
 

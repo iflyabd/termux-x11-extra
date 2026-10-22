@@ -2,9 +2,12 @@ package com.termux.shared.termux.extrakeys;
 
 import android.view.KeyEvent;
 
+import androidx.annotation.NonNull;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class ExtraKeysConstants {
@@ -59,7 +62,46 @@ public class ExtraKeysConstants {
         }
     }
 
-    public static class ExtraKeyDisplayMap extends CleverMap<String, String> {}
+    public static class ExtraKeyDisplayMap extends CleverMap<String, String> {
+        /**
+         * Look up a key name ignoring case, falling back to {@code defaultValue} if it is
+         * not found. The mouse/media/volume key families are handled case-insensitively
+         * (see {@code TermuxX11ExtraKeys.onLorieExtraKeyButtonClick()}), so their short
+         * labels should show up no matter how the user spelled them in the json.
+         */
+        public String getIgnoreCase(String key, String defaultValue) {
+            String value = get(key);
+            if (value != null)
+                return value;
+            for (Map.Entry<String, String> entry : entrySet()) {
+                if (entry.getKey().equalsIgnoreCase(key))
+                    return entry.getValue();
+            }
+            return defaultValue;
+        }
+    }
+
+    /**
+     * The key families that the Termux:X11 app handles case-insensitively: the mouse,
+     * wheel, media and volume keys. Their short labels are looked up ignoring case.
+     */
+    public static boolean isCaseInsensitiveKeyFamily(String key) {
+        if (key == null)
+            return false;
+        String upper = key.toUpperCase(Locale.ROOT);
+        return upper.startsWith("MOUSE_") || upper.startsWith("SCROLL_") || upper.startsWith("MOUSEWHEEL_")
+                || upper.startsWith("X11_MEDIA_") || upper.startsWith("MEDIA_") || upper.startsWith("VOLUME_");
+    }
+
+    /**
+     * Get the text to show on a button for {@code key}: the short label from
+     * {@code extraKeyDisplayMap} if there is one, otherwise the key name itself.
+     */
+    public static String getDisplayText(@NonNull ExtraKeyDisplayMap extraKeyDisplayMap, @NonNull String key) {
+        if (isCaseInsensitiveKeyFamily(key))
+            return extraKeyDisplayMap.getIgnoreCase(key, key);
+        return extraKeyDisplayMap.get(key, key);
+    }
 
     /*
      * Multiple maps are available to quickly change
@@ -118,6 +160,63 @@ public class ExtraKeysConstants {
         }};
 
         /**
+         * Short labels for the mouse, media and volume key families. The full names
+         * ({@code MOUSE_SCROLL_UP}, {@code MEDIA_PLAY_PAUSE}, {@code VOLUME_MUTE}, ...)
+         * are far too wide for a single extra key button, so they are shown as an icon
+         * or a couple of characters instead.
+         */
+        public static final ExtraKeyDisplayMap MOUSE_MEDIA_VOLUME_DISPLAY = new ExtraKeyDisplayMap() {{
+            // mouse buttons: the three button mouse followed by the button letter
+            put("MOUSE_LEFT", "🖱L");
+            put("MOUSE_BUTTON_LEFT", "🖱L");
+            put("MOUSE_MIDDLE", "🖱M");
+            put("MOUSE_BUTTON_MIDDLE", "🖱M");
+            put("MOUSE_RIGHT", "🖱R");
+            put("MOUSE_BUTTON_RIGHT", "🖱R");
+
+            // mouse wheel: the three button mouse followed by a triangle
+            put("MOUSE_SCROLL_UP", "🖱▲");
+            put("SCROLL_UP", "🖱▲");
+            put("MOUSEWHEEL_UP", "🖱▲");
+            put("MOUSE_SCROLL_DOWN", "🖱▼");
+            put("SCROLL_DOWN", "🖱▼");
+            put("MOUSEWHEEL_DOWN", "🖱▼");
+            put("MOUSE_SCROLL_LEFT", "🖱◀");
+            put("SCROLL_LEFT", "🖱◀");
+            put("MOUSEWHEEL_LEFT", "🖱◀");
+            put("MOUSE_SCROLL_RIGHT", "🖱▶");
+            put("SCROLL_RIGHT", "🖱▶");
+            put("MOUSEWHEEL_RIGHT", "🖱▶");
+
+            // android media session
+            put("MEDIA_PLAY", "▶"); // U+25B6
+            put("MEDIA_PAUSE", "⏸"); // U+23F8
+            put("MEDIA_PLAY_PAUSE", "⏯"); // U+23EF
+            put("MEDIA_STOP", "⏹"); // U+23F9
+            put("MEDIA_NEXT", "⏭"); // U+23ED
+            put("MEDIA_PREV", "⏮"); // U+23EE
+            put("MEDIA_PREVIOUS", "⏮");
+            put("MEDIA_REWIND", "⏪"); // U+23EA
+            put("MEDIA_FAST_FORWARD", "⏩"); // U+23E9
+
+            // media keys sent to the X11 session, marked with an "x"
+            put("X11_MEDIA_PLAY", "X▶");
+            put("X11_MEDIA_PAUSE", "X⏸");
+            put("X11_MEDIA_PLAY_PAUSE", "X⏯");
+            put("X11_MEDIA_STOP", "X⏹");
+            put("X11_MEDIA_NEXT", "X⏭");
+            put("X11_MEDIA_PREV", "X⏮");
+            put("X11_MEDIA_PREVIOUS", "X⏮");
+            put("X11_MEDIA_REWIND", "X⏪");
+            put("X11_MEDIA_FAST_FORWARD", "X⏩");
+
+            // android device volume
+            put("VOLUME_UP", "🔊"); // U+1F50A
+            put("VOLUME_DOWN", "🔉"); // U+1F509
+            put("VOLUME_MUTE", "🔇"); // U+1F507
+        }};
+
+        /**
          * Full Iso
          */
         public static final ExtraKeyDisplayMap FULL_ISO_CHAR_DISPLAY = new ExtraKeyDisplayMap() {{
@@ -126,6 +225,7 @@ public class ExtraKeysConstants {
             putAll(LESS_KNOWN_CHARACTERS_DISPLAY); // NEW
             putAll(NICER_LOOKING_DISPLAY);
             putAll(NOT_KNOWN_ISO_CHARACTERS); // NEW
+            putAll(MOUSE_MEDIA_VOLUME_DISPLAY); // NEW
         }};
 
         /**
@@ -146,6 +246,7 @@ public class ExtraKeysConstants {
             putAll(WELL_KNOWN_CHARACTERS_DISPLAY);
             putAll(LESS_KNOWN_CHARACTERS_DISPLAY); // NEW
             putAll(NICER_LOOKING_DISPLAY);
+            putAll(MOUSE_MEDIA_VOLUME_DISPLAY); // NEW
         }};
 
         /**
@@ -155,6 +256,7 @@ public class ExtraKeysConstants {
             putAll(CLASSIC_ARROWS_DISPLAY);
             putAll(WELL_KNOWN_CHARACTERS_DISPLAY);
             putAll(NICER_LOOKING_DISPLAY);
+            putAll(MOUSE_MEDIA_VOLUME_DISPLAY); // NEW
             // all other characters are displayed as themselves
         }};
 
