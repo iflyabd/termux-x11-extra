@@ -211,6 +211,10 @@ Clipboard sharing is text-only and bidirectional.
   newlines; non-text items fall back to their textual coercion (e.g. a file
   URI).
 
+If copies made inside X11 are delayed while the app is in the background,
+disable battery optimization for Termux:X11; some OEM battery managers freeze
+background apps, which also pauses their clipboard bridge.
+
 ## Tips
 
 * Keep rows the same length; a mismatch is reported as a JSON error.
