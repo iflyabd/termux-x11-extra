@@ -8,26 +8,51 @@ The other layouts in **Extra keys → Extra keys layout** are ready-made grids.
 When a preset (`9x4`, `10x4`, `11x4`, `12x4`, `10x5`, `11x5`) is selected it
 replaces the JSON below. Select **Custom (JSON config)** to use your own JSON.
 
-The repository default (also used by the *Reset* action in the JSON dialog) is:
+The repository default (also used by the *Reset* action in the JSON dialog) is
+a PC-style **5×11** bar: volume and media keys on top, the function key row,
+the letter/navigation rows and the modifiers:
 
 ```json
 [
+  ["VOLUME_MUTE", "VOLUME_DOWN", "VOLUME_UP",
+   {"key": "MEDIA_PREVIOUS", "popup": "X11_MEDIA_PREVIOUS"},
+   {"key": "MEDIA_PLAY_PAUSE", "popup": "X11_MEDIA_PLAY_PAUSE"},
+   {"key": "MEDIA_NEXT", "popup": "X11_MEDIA_NEXT"},
+   "F11", "F12",
+   "MOUSE_SCROLL_LEFT", "MOUSE_SCROLL_RIGHT", "MOUSE_SCROLL_UP"],
+
   ["F1", "F2", "F3", "F4", "F5", "F6", "F7",
    {"key": "F8", "popup": "DRAWER"},
    {"key": "F9", "popup": "F11"},
-   {"key": "F10", "popup": "F12"}],
+   {"key": "F10", "popup": "F12"},
+   "MOUSE_LEFT"],
 
   ["ESC", "A", {"key": "Z", "popup": "|"}, "R", "P",
-   "HOME", "PGUP", "INS", "KEYBOARD", "MAPPER"],
+   "HOME", "PGUP", "INS", "KEYBOARD", "MAPPER",
+   "MOUSE_MIDDLE"],
 
   ["TAB", "C", "X", "V", "-", "END", "PGDN", "UP",
-   "PREFERENCES", {"key": "BACKSPACE", "popup": "DELETE"}],
+   "PREFERENCES", {"key": "BACKSPACE", "popup": "DELETE"},
+   "MOUSE_RIGHT"],
 
   ["SHIFT", "META", "CTRL", "ALT", "/",
    {"key": "SPACE", "popup": "MOUSE_HELPER"},
-   "LEFT", "DOWN", "RIGHT", "ENTER"]
+   "LEFT", "DOWN", "RIGHT", "ENTER",
+   "MOUSE_SCROLL_DOWN"]
 ]
 ```
+
+What the rows contain:
+
+* **Row 1** – the phone's volume keys, the Android media keys (swipe up for the
+  same key inside the X11 session), `F11`/`F12` and the horizontal/vertical
+  wheel keys.
+* **Row 2** – `F1`–`F10` (swipe up on `F9`/`F10` for `F11`/`F12`, on `F8` for the
+  settings) and the left mouse button.
+* **Row 3** – `ESC`, the letter keys, navigation and the app keys, plus the
+  middle mouse button.
+* **Row 4** – the editing keys and `PREFERENCES`, plus the right mouse button.
+* **Row 5** – modifiers, space, the arrow keys and the wheel-up key.
 
 Single-quoted strings are also accepted by the parser (the built-in default
 uses them), but standard double-quoted JSON is recommended.
@@ -175,7 +200,7 @@ volume panel is shown.
 
 ## Examples
 
-### PC-style bar with mouse, scroll, media and volume keys
+### A compact bar with mouse, scroll, media and volume keys
 
 ```json
 [
