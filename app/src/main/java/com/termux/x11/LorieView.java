@@ -820,7 +820,7 @@ public class LorieView extends SurfaceView implements InputStub {
             // Look at the description first: a uri list would be dropped by the system while
             // it is read, so it must not be read at all.
             ClipDescription description = clipboard.getPrimaryClipDescription();
-            if (description != null && description.hasMimeType(ClipDescription.MIMETYPE_TEXT_URIPLIST))
+            if (description != null && description.hasMimeType("text/uri-list"))
                 return null;
 
             clip = clipboard.getPrimaryClip();
