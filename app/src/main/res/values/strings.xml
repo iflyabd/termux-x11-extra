@@ -16,7 +16,12 @@ E.g. <b>META</b> for <i>META key</i>, \n
 <b>PREFERENCES</b> for <i>preferences opening key</i>, \n
 <b>MOUSE_HELPER</b> for <i>mouse helper toggling key</i>, \n
 <b>STYLUS_HELPER</b> for <i>stylus click override overlay toggling key</i>, \n
-<b>EXIT</b> for <i>application exit key</i>.</string>
+<b>EXIT</b> for <i>application exit key</i>, \n
+<b>MOUSE_LEFT</b>/<b>MOUSE_MIDDLE</b>/<b>MOUSE_RIGHT</b> for <i>mouse buttons</i>, \n
+<b>MOUSE_SCROLL_UP</b>/<b>DOWN</b>/<b>LEFT</b>/<b>RIGHT</b> for <i>mouse wheel</i>, \n
+<b>MEDIA_PLAY_PAUSE</b>, <b>MEDIA_NEXT</b>, <b>MEDIA_PREVIOUS</b> for <i>Android media keys</i> (<b>X11_MEDIA_*</b> for <i>media keys inside X11</i>), \n
+<b>VOLUME_UP</b>/<b>VOLUME_DOWN</b>/<b>VOLUME_MUTE</b> for <i>device volume</i>. \n
+See <b>wiki.md</b> in the repository for the full reference.</string>
     <string name="lorie_notification_content_text">Pull down to show options</string>
     <string name="lorie_notification_open_preferences">Preferences</string>
     <string name="lorie_notification_exit">Exit</string>

@@ -15,8 +15,8 @@ import org.json.JSONObject;
  * The presets are organised like a compact PC keyboard: a function-key strip on
  * top, the number row with shifted symbols in the five-row presets, a modifier
  * and punctuation row, a clipboard/utility row and a navigation/edit cluster
- * with Space/Enter at the bottom right. Long-press popups stay attached to the
- * key they belong to (F7-F9 carry F10-F12, Backspace carries Delete, and so on).
+ * with Space/Enter at the bottom right. Swipe-up popups stay attached to the
+ * key they belong to (F9/F10 carry F11/F12, Backspace carries Delete, and so on).
  */
 public final class ExtraKeysLayouts {
 
@@ -110,7 +110,7 @@ public final class ExtraKeysLayouts {
         return rows.toString();
     }
 
-    /** Function row without Esc: F1-F9, with F10-F12 on the long-press popups. */
+    /** Function row without Esc: F1-F9, with F10-F12 on the swipe-up popups. */
     private static Object[] fnRow() {
         return new Object[]{
                 "F1", "F2", "F3", "F4", "F5", "F6",
@@ -127,7 +127,7 @@ public final class ExtraKeysLayouts {
         return result;
     }
 
-    /** Number row with the shifted symbol on long press, like a real PC number row. */
+    /** Number row with the shifted symbol on swipe up, like a real PC number row. */
     private static Object[] digitRow(Object... trailing) {
         Object[] result = new Object[10 + trailing.length];
         result[0] = popup("1", "!");

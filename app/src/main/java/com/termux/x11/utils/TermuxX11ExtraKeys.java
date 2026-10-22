@@ -14,6 +14,8 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyCharacterMap;
@@ -33,10 +35,13 @@ import com.termux.x11.Prefs;
 import com.termux.x11.R;
 import com.termux.x11.VirtualKeyMapperActivity;
 import com.termux.x11.MainActivity;
+import com.termux.x11.input.InputStub;
 import com.termux.x11.input.TouchInputHandler;
 import com.termux.x11.input.VirtualKeyHandler;
 
 import org.json.JSONException;
+
+import java.util.Locale;
 
 public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
     @SuppressWarnings("FieldCanBeLocal")
@@ -52,8 +57,16 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
     private boolean shiftDown;
     private boolean metaDown;
 
-    /** Defines the key for extra keys - default = user's installed 4-row config (F1-F12 row + nav + TAB row + SHIFT row) */
-    public static final String DEFAULT_IVALUE_EXTRA_KEYS = "[['F1','F2','F3','F4','F5','F6',{key: 'F7', popup: 'F10'},{key: 'F8', popup: 'F11'},{key: 'F9', popup: 'F12'}],['ESC','/',{key: '-', popup: '|'},'HOME','UP','END','PGUP','PREFERENCES','MAPPER'],['TAB','CTRL','ALT','LEFT','DOWN','RIGHT','PGDN','KEYBOARD',{key: 'BACKSPACE', popup: 'DELETE'}],['SHIFT','META','C','X','V','A','Z','P','ENTER']]";
+    /**
+     * Default extra-keys JSON: a PC/hacker-style 4x10 keyboard.
+     * F1-F12 on the first row (F11/F12 as popups of F9/F10, settings as F8 popup),
+     * letters/navigation on the middle rows and modifiers/punctuation on the last row.
+     * See {@code wiki.md} for the full key reference (including MOUSE_*, MEDIA_*, VOLUME_*).
+     */
+    public static final String DEFAULT_IVALUE_EXTRA_KEYS = "[['F1','F2','F3','F4','F5','F6','F7',{key:'F8',popup:'DRAWER'},{key:'F9',popup:'F11'},{key:'F10',popup:'F12'}],['ESC','A',{key:'Z',popup:'|'},'R','P','HOME','PGUP','INS','KEYBOARD','MAPPER'],['TAB','C','X','V','-','END','PGDN','UP','PREFERENCES',{key:'BACKSPACE',popup:'DELETE'}],['SHIFT','META','CTRL','ALT','/',{key:'SPACE',popup:'MOUSE_HELPER'},'LEFT','DOWN','RIGHT','ENTER']]";
+
+    /** One wheel notch in the smooth-scroll units used by {@link LorieView#sendMouseWheelEvent}. */
+    private static final float SCROLL_NOTCH = 120f;
 
     public TermuxX11ExtraKeys(@NonNull View.OnKeyListener eventlistener, MainActivity activity, ExtraKeysView extrakeysview) {
         mEventListener = eventlistener;
@@ -305,8 +318,159 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
             mActivity.toggleMouseAuxButtons();
         else if ("STYLUS_HELPER".equals(key))
             mActivity.toggleStylusAuxButtons();
+        else if (key.startsWith("MOUSE_") || key.startsWith("SCROLL_") || key.startsWith("MOUSEWHEEL_"))
+            onMouseExtraKey(key);
+        else if (key.startsWith("X11_MEDIA_"))
+            onX11MediaExtraKey(key);
+        else if (key.startsWith("MEDIA_"))
+            onMediaExtraKey(key);
+        else if (key.startsWith("VOLUME_"))
+            onVolumeExtraKey(key);
         else
             onTerminalExtraKeyButtonClick(view, key, ctrlDown, altDown, shiftDown, metaDown, fnDown);
+    }
+
+    /**
+     * Mouse button and wheel keys for the extra-keys JSON.
+     *
+     * <p>All names are prefixed with {@code MOUSE_} / {@code MOUSE_SCROLL_} (or the
+     * {@code SCROLL_} / {@code MOUSEWHEEL_} aliases) on purpose: the bare names
+     * {@code LEFT}, {@code RIGHT}, {@code UP} and {@code DOWN} stay reserved for the
+     * arrow keys and can never be turned into mouse actions.</p>
+     *
+     * <p>Supported: {@code MOUSE_LEFT}, {@code MOUSE_MIDDLE}, {@code MOUSE_RIGHT}
+     * (plus {@code MOUSE_BUTTON_LEFT/MIDDLE/RIGHT} aliases) and the four wheel
+     * directions {@code MOUSE_SCROLL_UP/DOWN/LEFT/RIGHT}.</p>
+     */
+    private void onMouseExtraKey(@NonNull String rawKey) {
+        LorieView lorieView = mActivity.getLorieView();
+        if (lorieView == null)
+            return;
+
+        String key = rawKey.toUpperCase(Locale.ROOT).replace('-', '_').replace(' ', '_');
+        if (key.startsWith("MOUSEWHEEL_"))
+            key = "MOUSE_SCROLL_" + key.substring("MOUSEWHEEL_".length());
+
+        switch (key) {
+            case "MOUSE_LEFT":
+            case "MOUSE_BUTTON_LEFT":
+                clickMouseButton(lorieView, InputStub.BUTTON_LEFT);
+                break;
+            case "MOUSE_MIDDLE":
+            case "MOUSE_BUTTON_MIDDLE":
+                clickMouseButton(lorieView, InputStub.BUTTON_MIDDLE);
+                break;
+            case "MOUSE_RIGHT":
+            case "MOUSE_BUTTON_RIGHT":
+                clickMouseButton(lorieView, InputStub.BUTTON_RIGHT);
+                break;
+            case "MOUSE_SCROLL_UP":
+            case "SCROLL_UP":
+                lorieView.sendMouseWheelEvent(0f, -SCROLL_NOTCH);
+                break;
+            case "MOUSE_SCROLL_DOWN":
+            case "SCROLL_DOWN":
+                lorieView.sendMouseWheelEvent(0f, SCROLL_NOTCH);
+                break;
+            case "MOUSE_SCROLL_LEFT":
+            case "SCROLL_LEFT":
+                lorieView.sendMouseWheelEvent(-SCROLL_NOTCH, 0f);
+                break;
+            case "MOUSE_SCROLL_RIGHT":
+            case "SCROLL_RIGHT":
+                lorieView.sendMouseWheelEvent(SCROLL_NOTCH, 0f);
+                break;
+        }
+    }
+
+    /** Presses and releases an X11 mouse button at the current pointer position. */
+    private void clickMouseButton(LorieView lorieView, int button) {
+        lorieView.sendMouseEvent(0f, 0f, button, true, true);
+        handler.postDelayed(() -> {
+            LorieView view = mActivity.getLorieView();
+            if (view != null)
+                view.sendMouseEvent(0f, 0f, button, false, true);
+        }, 60);
+    }
+
+    /**
+     * Media keys handled by Android's media session (whatever is playing on the
+     * device: a music app, a browser, etc.).
+     */
+    private void onMediaExtraKey(@NonNull String rawKey) {
+        int keyCode;
+        switch (rawKey.toUpperCase(Locale.ROOT)) {
+            case "MEDIA_PLAY_PAUSE": keyCode = KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE; break;
+            case "MEDIA_PLAY":       keyCode = KeyEvent.KEYCODE_MEDIA_PLAY; break;
+            case "MEDIA_PAUSE":      keyCode = KeyEvent.KEYCODE_MEDIA_PAUSE; break;
+            case "MEDIA_NEXT":       keyCode = KeyEvent.KEYCODE_MEDIA_NEXT; break;
+            case "MEDIA_PREV":
+            case "MEDIA_PREVIOUS":   keyCode = KeyEvent.KEYCODE_MEDIA_PREVIOUS; break;
+            case "MEDIA_STOP":       keyCode = KeyEvent.KEYCODE_MEDIA_STOP; break;
+            case "MEDIA_REWIND":     keyCode = KeyEvent.KEYCODE_MEDIA_REWIND; break;
+            case "MEDIA_FAST_FORWARD": keyCode = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD; break;
+            default: return;
+        }
+
+        AudioManager audioManager = (AudioManager) mActivity.getSystemService(Context.AUDIO_SERVICE);
+        if (audioManager == null)
+            return;
+
+        long now = SystemClock.uptimeMillis();
+        audioManager.dispatchMediaKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_DOWN, keyCode, 0));
+        audioManager.dispatchMediaKeyEvent(new KeyEvent(now, now, KeyEvent.ACTION_UP, keyCode, 0));
+    }
+
+    /**
+     * Media keys sent to X11 as regular keyboard events (XF86AudioPlay, XF86AudioNext,
+     * ...). Use these when the media player runs inside the X11 session (mpv, VLC,
+     * a desktop browser, ...) instead of as an Android media session.
+     */
+    private void onX11MediaExtraKey(@NonNull String rawKey) {
+        int keyCode;
+        switch (rawKey.toUpperCase(Locale.ROOT)) {
+            case "X11_MEDIA_PLAY_PAUSE": keyCode = KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE; break;
+            case "X11_MEDIA_PLAY":       keyCode = KeyEvent.KEYCODE_MEDIA_PLAY; break;
+            case "X11_MEDIA_PAUSE":      keyCode = KeyEvent.KEYCODE_MEDIA_PAUSE; break;
+            case "X11_MEDIA_NEXT":       keyCode = KeyEvent.KEYCODE_MEDIA_NEXT; break;
+            case "X11_MEDIA_PREV":
+            case "X11_MEDIA_PREVIOUS":   keyCode = KeyEvent.KEYCODE_MEDIA_PREVIOUS; break;
+            case "X11_MEDIA_STOP":       keyCode = KeyEvent.KEYCODE_MEDIA_STOP; break;
+            case "X11_MEDIA_REWIND":     keyCode = KeyEvent.KEYCODE_MEDIA_REWIND; break;
+            case "X11_MEDIA_FAST_FORWARD": keyCode = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD; break;
+            default: return;
+        }
+
+        LorieView lorieView = mActivity.getLorieView();
+        if (lorieView == null)
+            return;
+
+        lorieView.sendKeyEvent(0, keyCode, true);
+        lorieView.sendKeyEvent(0, keyCode, false);
+    }
+
+    /**
+     * Android device volume keys (media stream), independent of the X11 session.
+     */
+    private void onVolumeExtraKey(@NonNull String rawKey) {
+        AudioManager audioManager = (AudioManager) mActivity.getSystemService(Context.AUDIO_SERVICE);
+        if (audioManager == null)
+            return;
+
+        switch (rawKey.toUpperCase(Locale.ROOT)) {
+            case "VOLUME_UP":
+                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
+                        AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
+                break;
+            case "VOLUME_DOWN":
+                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
+                        AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
+                break;
+            case "VOLUME_MUTE":
+                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
+                        AudioManager.ADJUST_TOGGLE_MUTE, AudioManager.FLAG_SHOW_UI);
+                break;
+        }
     }
 
     /**

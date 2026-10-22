@@ -901,6 +901,9 @@ public class MainActivity extends AppCompatActivity {
                 getLorieView().triggerCallback();
                 clientConnectedStateChanged();
                 getLorieView().reloadPreferences(prefs);
+                // Fresh X server (or a reconnect): announce the Android clipboard so X11
+                // clients can paste what was copied before Termux:X11 was even started.
+                getLorieView().checkForClipboardChange();
             } else
                 handler.postDelayed(this::tryConnect, 250);
         } catch (Exception e) {

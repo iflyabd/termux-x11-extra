@@ -139,6 +139,9 @@ You can access preferences menu three ways:
 ![image](./.github/static/3.jpg)
 </details>
 
+## Customizable extra keys
+The extra keys bar is configured with JSON in **Preferences → Extra keys → Extra keys config**. It supports PC-style layouts, swipe-up popups, macros, mouse buttons, mouse wheel keys, media keys and Android device volume keys, while `LEFT`/`RIGHT`/`UP`/`DOWN` always remain arrow keys. See [wiki.md](./wiki.md) for the full key reference, examples and the built-in default layout.
+
 ## Toggling keyboard
 Just press "Back" button.
 

@@ -288,7 +288,12 @@ static int lorieProcSendEvent(ClientPtr client) {
 static void lorieSelectionCallback(__unused CallbackListPtr *callbacks, __unused void * data, void * args) {
     SelectionInfoRec *info = (SelectionInfoRec *) args;
 
-    if (clipboardEnabled && info->selection->selection == xaCLIPBOARD && info->kind == SelectionSetOwner)
+    /* When an Android clipboard announcement makes the X server itself the selection
+     * owner, the data is already on its way from Android; querying it and pushing it
+     * straight back to Android would just be an echo. Only react to real X11 clients
+     * taking ownership of CLIPBOARD. */
+    if (clipboardEnabled && info->selection->selection == xaCLIPBOARD &&
+        info->kind == SelectionSetOwner && info->client != serverClient)
         lorieSelectionRequest(xaCLIPBOARD, xaTARGETS);
 }
 

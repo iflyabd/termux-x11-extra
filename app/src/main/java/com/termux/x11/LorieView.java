@@ -3,7 +3,6 @@ package com.termux.x11;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ClipData;
-import android.content.ClipDescription;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -46,6 +45,7 @@ import android.view.inputmethod.TextSnapshot;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.math.MathUtils;
 
 import com.termux.x11.input.InputStub;
@@ -339,7 +339,9 @@ public class LorieView extends SurfaceView implements InputStub {
     }
 
     private ClipboardManager clipboard;
-    private long lastClipboardTimestamp = System.currentTimeMillis();
+    /** Last text seen in (or written to) the Android clipboard, used for content-based dedupe. */
+    private volatile String lastAndroidClipboardText;
+    private boolean clipboardListenerRegistered;
     private static boolean clipboardSyncEnabled = false;
     private static boolean hardwareKbdScancodesWorkaround = false;
     private final InputMethodManager mIMM = (InputMethodManager)getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -737,51 +739,169 @@ public class LorieView extends SurfaceView implements InputStub {
 
     public void reloadPreferences(Prefs p) {
         hardwareKbdScancodesWorkaround = p.hardwareKbdScancodesWorkaround.get();
+        boolean wasClipboardSyncEnabled = clipboardSyncEnabled;
         clipboardSyncEnabled = p.clipboardEnable.get();
         setClipboardSyncEnabled(clipboardSyncEnabled, clipboardSyncEnabled);
+        updateClipboardListener();
+        // Sync immediately when the user turns clipboard sharing on.
+        if (clipboardSyncEnabled && !wasClipboardSyncEnabled)
+            checkForClipboardChange();
         TouchInputHandler.refreshInputDevices();
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        updateClipboardListener();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        removeClipboardListener();
+        super.onDetachedFromWindow();
+    }
+
+    /**
+     * Keeps the clipboard listener registered for as long as clipboard sync is enabled and
+     * the view is attached. Registering only while focused (the old behaviour) missed changes
+     * and made the first sync after launch unreliable. Android 10+ still refuses clipboard
+     * reads to background apps, so changes made while X11 is not focused are picked up by
+     * {@link #checkForClipboardChange()} as soon as the window regains focus.
+     */
+    private void updateClipboardListener() {
+        if (clipboard == null)
+            return;
+
+        boolean wantListener = clipboardSyncEnabled && isAttachedToWindow();
+        if (wantListener == clipboardListenerRegistered)
+            return;
+
+        if (wantListener) {
+            clipboard.addPrimaryClipChangedListener(clipboardListener);
+            clipboardListenerRegistered = true;
+        } else {
+            removeClipboardListener();
+        }
+    }
+
+    private void removeClipboardListener() {
+        if (clipboard != null && clipboardListenerRegistered) {
+            clipboard.removePrimaryClipChangedListener(clipboardListener);
+            clipboardListenerRegistered = false;
+        }
+    }
+
+    /**
+     * Reads the current Android clipboard as plain text. Multiple clip items are joined with
+     * newlines; items without text fall back to {@link ClipData.Item#coerceToText(Context)}
+     * (so copied files/URIs can still be pasted as text).
+     *
+     * @return the clipboard text, or {@code null} when the clipboard is empty or unreadable
+     * (Android 10+ denies reads to apps that are not in the foreground).
+     */
+    @Nullable
+    private String readClipboardText() {
+        if (clipboard == null)
+            return null;
+
+        ClipData clip;
+        try {
+            clip = clipboard.getPrimaryClip();
+        } catch (Exception e) {
+            return null;
+        }
+        if (clip == null || clip.getItemCount() == 0)
+            return null;
+
+        StringBuilder text = new StringBuilder();
+        for (int i = 0; i < clip.getItemCount(); i++) {
+            ClipData.Item item = clip.getItemAt(i);
+            CharSequence itemText = item.getText();
+            if (itemText == null) {
+                try {
+                    itemText = item.coerceToText(getContext());
+                } catch (Exception ignored) {
+                    itemText = null;
+                }
+            }
+            if (itemText == null)
+                continue;
+
+            if (text.length() > 0)
+                text.append('\n');
+            text.append(itemText);
+        }
+
+        return text.toString();
     }
 
     // It is used in native code
     void setClipboardText(String text) {
-        clipboard.setPrimaryClip(ClipData.newPlainText("X11 clipboard", text));
+        if (text == null)
+            return;
 
-        // Android does not send PrimaryClipChanged event to the window which posted event
-        // But in the case we are owning focus and clipboard is unchanged it will be replaced by the same value on X server side.
-        // Not cool in the case if user installed some clipboard manager, clipboard content will be doubled.
-        lastClipboardTimestamp = System.currentTimeMillis() + 150;
+        // Content-based echo suppression: if Android already contains exactly this text
+        // there is nothing to write (and no need to create a new clipboard entry).
+        String current = readClipboardText();
+        if (text.equals(current)) {
+            lastAndroidClipboardText = current;
+            return;
+        }
+
+        // Remember the text before writing: OnPrimaryClipChanged may be dispatched
+        // asynchronously, and checkForClipboardChange() must not announce our own write.
+        lastAndroidClipboardText = text;
+        try {
+            clipboard.setPrimaryClip(ClipData.newPlainText("X11 clipboard", text));
+        } catch (Exception e) {
+            Log.e("CLIP", "Could not write X11 clipboard to Android", e);
+        }
     }
 
     /** @noinspection unused*/ // It is used in native code
     void requestClipboard() {
         if (!clipboardSyncEnabled) {
-            sendClipboardEvent("".getBytes(UTF_8));
+            sendClipboardEvent(new byte[0]);
             return;
         }
 
-        CharSequence clip = clipboard.getText();
-        if (clip != null) {
-            String text = String.valueOf(clipboard.getText());
-            sendClipboardEvent(text.getBytes(UTF_8));
-            Log.d("CLIP", "sending clipboard contents: " + text);
-        }
+        String text = readClipboardText();
+        if (text == null)
+            text = "";
+
+        lastAndroidClipboardText = text;
+        sendClipboardEvent(text.getBytes(UTF_8));
+        Log.d("CLIP", "sending clipboard contents: " + text);
     }
 
     public void handleClipboardChange() {
         checkForClipboardChange();
     }
 
+    /**
+     * Announces the Android clipboard to the X server if its text actually changed.
+     * Detection is content-based (not timestamp-based), so repeated events for the same
+     * clip and clipboard-manager rewrites are ignored, while a real change (including a
+     * change made while X11 was in the background) is always announced exactly once.
+     */
     public void checkForClipboardChange() {
-        ClipDescription desc = clipboard.getPrimaryClipDescription();
-        if (clipboardSyncEnabled && desc != null &&
-                lastClipboardTimestamp < desc.getTimestamp() &&
-                desc.getMimeTypeCount() == 1 &&
-                (desc.hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN) ||
-                        desc.hasMimeType(ClipDescription.MIMETYPE_TEXT_HTML))) {
-            lastClipboardTimestamp = desc.getTimestamp();
-            sendClipboardAnnounce();
-            Log.d("CLIP", "sending clipboard announce");
-        }
+        if (!clipboardSyncEnabled || !LorieView.connected())
+            return;
+
+        String text = readClipboardText();
+        if (text == null || text.isEmpty())
+            return;
+
+        // Content-based dedupe: repeated events for the same clip (and clipboard
+        // managers rewriting the same text) are ignored. Writes coming from X11
+        // already update lastAndroidClipboardText in setClipboardText(), so their
+        // echo is ignored here as well.
+        if (text.equals(lastAndroidClipboardText))
+            return;
+        lastAndroidClipboardText = text;
+
+        sendClipboardAnnounce();
+        Log.d("CLIP", "sending clipboard announce");
     }
 
     @Override
@@ -790,11 +910,9 @@ public class LorieView extends SurfaceView implements InputStub {
 
         requestFocus();
 
-        if (clipboardSyncEnabled && hasFocus) {
-            clipboard.addPrimaryClipChangedListener(clipboardListener);
+        updateClipboardListener();
+        if (hasFocus)
             checkForClipboardChange();
-        } else
-            clipboard.removePrimaryClipChangedListener(clipboardListener);
 
         TouchInputHandler.refreshInputDevices();
     }
