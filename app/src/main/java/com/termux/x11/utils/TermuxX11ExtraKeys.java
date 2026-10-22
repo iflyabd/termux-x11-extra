@@ -281,6 +281,8 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
             onTerminalExtraKeyButtonClick(view, null, ctrlDown, altDown, shiftDown, metaDown, fnDown);
             return;
         }
+        // Mouse/media/volume key families are case-insensitive; literal keys stay as typed.
+        String upperKey = key.toUpperCase(Locale.ROOT);
         if ("KEYBOARD".equals(key))
             toggleKeyboardVisibility(mActivity);
         else if ("MAPPER".equals(key))
@@ -318,13 +320,13 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
             mActivity.toggleMouseAuxButtons();
         else if ("STYLUS_HELPER".equals(key))
             mActivity.toggleStylusAuxButtons();
-        else if (key.startsWith("MOUSE_") || key.startsWith("SCROLL_") || key.startsWith("MOUSEWHEEL_"))
+        else if (upperKey.startsWith("MOUSE_") || upperKey.startsWith("SCROLL_") || upperKey.startsWith("MOUSEWHEEL_"))
             onMouseExtraKey(key);
-        else if (key.startsWith("X11_MEDIA_"))
+        else if (upperKey.startsWith("X11_MEDIA_"))
             onX11MediaExtraKey(key);
-        else if (key.startsWith("MEDIA_"))
+        else if (upperKey.startsWith("MEDIA_"))
             onMediaExtraKey(key);
-        else if (key.startsWith("VOLUME_"))
+        else if (upperKey.startsWith("VOLUME_"))
             onVolumeExtraKey(key);
         else
             onTerminalExtraKeyButtonClick(view, key, ctrlDown, altDown, shiftDown, metaDown, fnDown);
