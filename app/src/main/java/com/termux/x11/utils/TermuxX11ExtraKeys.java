@@ -39,7 +39,9 @@ import com.termux.x11.input.InputStub;
 import com.termux.x11.input.TouchInputHandler;
 import com.termux.x11.input.VirtualKeyHandler;
 
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONTokener;
 
 import java.util.Locale;
 
@@ -476,6 +478,54 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
     }
 
     /**
+     * Merge several json arrays into a single array of rows.
+     *
+     * <p>Users often paste a new row together with the rows they already had, for
+     * example {@code [[new row]], [[old row 1], [old row 2]]}. A json parser stops
+     * after the first array, so only the new row would show up in the bar and the
+     * other rows would silently disappear. Merging keeps every pasted row.</p>
+     *
+     * @param json The extra keys json, possibly holding more than one array.
+     * @return A single json array with all rows, or {@code json} unchanged if it is
+     *         not a list of arrays or cannot be parsed.
+     */
+    public static String mergeExtraKeysArrays(@NonNull String json) {
+        JSONTokener tokener = new JSONTokener(json);
+        JSONArray merged = new JSONArray();
+        int arrayCount = 0;
+
+        try {
+            while (true) {
+                int c = tokener.nextClean();
+                if (c == 0)
+                    break;
+                if (c == ',' || c == ';') { // separator between two pasted arrays
+                    c = tokener.nextClean();
+                    if (c == 0)
+                        break;
+                }
+                tokener.back();
+
+                Object value = tokener.nextValue();
+                if (!(value instanceof JSONArray))
+                    return json; // not a plain list of rows, keep the original text
+
+                JSONArray array = (JSONArray) value;
+                for (int i = 0; i < array.length(); i++)
+                    merged.put(array.get(i));
+                arrayCount++;
+            }
+        } catch (JSONException e) {
+            return json; // broken json, let the caller report it
+        }
+
+        if (arrayCount <= 1)
+            return json; // a single array, nothing to merge
+
+        return merged.toString();
+    }
+
+    /**
      * Set the terminal extra keys and style.
      */
     public static void setExtraKeys() {
@@ -486,6 +536,9 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
         String layoutJson = prefs == null ? null : ExtraKeysLayouts.build(prefs.extraKeysLayout.get());
         String extrakeys = layoutJson != null ? layoutJson
                 : (prefs != null ? prefs.extra_keys_config.get() : DEFAULT_IVALUE_EXTRA_KEYS);
+
+        // Several pasted arrays are merged into one so that no row is lost.
+        extrakeys = mergeExtraKeysArrays(extrakeys);
 
         try {
             // The mMap stores the extra key and style string values while loading properties

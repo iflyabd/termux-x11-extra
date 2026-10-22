@@ -32,13 +32,12 @@ The repository default (also used by the *Reset* action in the JSON dialog) is:
 Single-quoted strings are also accepted by the parser (the built-in default
 uses them), but standard double-quoted JSON is recommended.
 
-> **One document only.** The whole configuration has to be a *single* JSON
-> array. If you paste two arrays (for example a new row and then the old
-> rows) the parser silently keeps only the **first** one and the remaining
-> rows never show up. To add a row, put it inside the same outer array:
+> **One document, but pasted arrays are merged.** The whole configuration is a
+> list of rows. If you paste several arrays at once (for example a new row and
+> then the old rows) the app merges them, so nothing gets lost:
 >
 > ```json
-> [["ROW1"],["ROW2"],["ROW3"]]
+> [[new row]], [[old row 1], [old row 2]]   →  3 rows
 > ```
 
 ## Format
