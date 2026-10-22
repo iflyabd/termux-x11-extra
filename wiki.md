@@ -246,8 +246,10 @@ Notes:
 
 Clipboard sharing is text-only and bidirectional.
 
-* **X11 → Android**: copying in an X11 application immediately updates the
-  Android clipboard, even while Termux:X11 is in the background.
+* **X11 → Android**: copying in an X11 application updates the Android
+  clipboard. Android only accepts clipboard writes from the app that is in the
+  foreground, so a copy that is made while Termux:X11 is in the background is
+  written as soon as the app comes to the front again.
 * **Android → X11**: Android 10 and newer do **not** allow a background app to
   read the clipboard. Changes made in other apps while X11 is not focused are
   therefore announced as soon as Termux:X11 regains focus (or when the X
@@ -258,6 +260,10 @@ Clipboard sharing is text-only and bidirectional.
 * Rich text is provided to X11 as plain text. Multi-item clips are joined with
   newlines; non-text items fall back to their textual coercion (e.g. a file
   URI).
+* Clips that only contain URIs (a copied link or file) are **not** read.
+  Android tries to hand the URI permission to the app that reads the clipboard
+  and clears the clipboard when that fails, which would throw away what was
+  just copied on the phone. Copy the link as plain text to sync it to X11.
 
 If copies made inside X11 are delayed while the app is in the background,
 disable battery optimization for Termux:X11; some OEM battery managers freeze

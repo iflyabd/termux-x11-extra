@@ -3,6 +3,7 @@ package com.termux.x11;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ClipData;
+import android.content.ClipDescription;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -341,6 +342,11 @@ public class LorieView extends SurfaceView implements InputStub {
     private ClipboardManager clipboard;
     /** Last text seen in (or written to) the Android clipboard, used for content-based dedupe. */
     private volatile String lastAndroidClipboardText;
+    /**
+     * Text that was copied in X11 but could not be written to the Android clipboard yet,
+     * because Android only accepts clipboard writes from the app that is in the foreground.
+     */
+    private volatile String pendingX11ClipboardText;
     private boolean clipboardListenerRegistered;
     private static boolean clipboardSyncEnabled = false;
     private static boolean hardwareKbdScancodesWorkaround = false;
@@ -796,6 +802,11 @@ public class LorieView extends SurfaceView implements InputStub {
      * newlines; items without text fall back to {@link ClipData.Item#coerceToText(Context)}
      * (so copied files/URIs can still be pasted as text).
      *
+     * <p>Clips that only hold URIs (a copied link or file) are skipped: reading them makes
+     * the system try to grant the URI permission to this app, and the system <em>clears the
+     * clipboard</em> when that fails, which would throw away what the user just copied.
+     * Such clips are of no use in a terminal anyway.</p>
+     *
      * @return the clipboard text, or {@code null} when the clipboard is empty or unreadable
      * (Android 10+ denies reads to apps that are not in the foreground).
      */
@@ -806,6 +817,12 @@ public class LorieView extends SurfaceView implements InputStub {
 
         ClipData clip;
         try {
+            // Look at the description first: a uri list would be dropped by the system while
+            // it is read, so it must not be read at all.
+            ClipDescription description = clipboard.getPrimaryClipDescription();
+            if (description != null && description.hasMimeType(ClipDescription.MIMETYPE_TEXT_URIPLIST))
+                return null;
+
             clip = clipboard.getPrimaryClip();
         } catch (Exception e) {
             return null;
@@ -837,7 +854,7 @@ public class LorieView extends SurfaceView implements InputStub {
 
     // It is used in native code
     void setClipboardText(String text) {
-        if (text == null)
+        if (text == null || text.isEmpty())
             return;
 
         // Content-based echo suppression: if Android already contains exactly this text
@@ -845,17 +862,46 @@ public class LorieView extends SurfaceView implements InputStub {
         String current = readClipboardText();
         if (text.equals(current)) {
             lastAndroidClipboardText = current;
+            pendingX11ClipboardText = null;
+            Log.d("CLIP", "X11 clipboard is already on Android (" + text.length() + " chars)");
             return;
         }
 
         // Remember the text before writing: OnPrimaryClipChanged may be dispatched
         // asynchronously, and checkForClipboardChange() must not announce our own write.
         lastAndroidClipboardText = text;
+        // Keep the text around: Android only accepts clipboard writes from the app that is in
+        // the foreground, so the write can be dropped while X11 is used in the background.
+        pendingX11ClipboardText = text;
+
         try {
             clipboard.setPrimaryClip(ClipData.newPlainText("X11 clipboard", text));
+            Log.d("CLIP", "wrote X11 clipboard to Android (" + text.length() + " chars)");
         } catch (Exception e) {
             Log.e("CLIP", "Could not write X11 clipboard to Android", e);
         }
+    }
+
+    /**
+     * Writes a clipboard entry that Android refused earlier (because the app was in the
+     * background) as soon as the app is in the foreground again.
+     */
+    private void flushPendingX11Clipboard() {
+        String text = pendingX11ClipboardText;
+        if (text == null)
+            return;
+
+        // If the user copied something else on the phone in the meantime, that is newer and
+        // must not be overwritten - it is pushed to X11 instead.
+        String current = readClipboardText();
+        if (current != null && !current.isEmpty() && !text.equals(current)) {
+            pendingX11ClipboardText = null;
+            checkForClipboardChange();
+            return;
+        }
+
+        pendingX11ClipboardText = null;
+        setClipboardText(text);
     }
 
     /** @noinspection unused*/ // It is used in native code
@@ -902,7 +948,8 @@ public class LorieView extends SurfaceView implements InputStub {
         lastAndroidClipboardText = text;
 
         sendClipboardAnnounce();
-        Log.d("CLIP", "sending clipboard announce");
+        // Never log the clipboard text itself: it may contain passwords or tokens.
+        Log.d("CLIP", "sending clipboard announce (" + text.length() + " chars)");
     }
 
     @Override
@@ -912,8 +959,12 @@ public class LorieView extends SurfaceView implements InputStub {
         requestFocus();
 
         updateClipboardListener();
-        if (hasFocus)
+        if (hasFocus) {
+            // A clipboard that was copied in X11 while the app was in the background could not
+            // be written to Android, so do it now.
+            flushPendingX11Clipboard();
             checkForClipboardChange();
+        }
 
         TouchInputHandler.refreshInputDevices();
     }
