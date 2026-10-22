@@ -269,6 +269,14 @@ If copies made inside X11 are delayed while the app is in the background,
 disable battery optimization for Termux:X11; some OEM battery managers freeze
 background apps, which also pauses their clipboard bridge.
 
+> **The phone clipboard is empty right after copying?** Android clears the
+> clipboard when an app reads it and the URI permission of the copied item
+> cannot be granted to that app. A **scrcpy server that runs as root** (via
+> `adb shell`) does exactly that: it watches the clipboard and wipes it a few
+> milliseconds after every change. Start scrcpy with
+> `--no-clipboard-autosync` to avoid it. The same can happen with any other
+> root process that reads the clipboard.
+
 ## Tips
 
 * Keep rows the same length; a mismatch is reported as a JSON error.
