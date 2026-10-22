@@ -11,6 +11,12 @@ import org.json.JSONObject;
  *
  * A layout is a columns x rows grid generated as an extra-keys JSON config. The
  * "custom" layout means "use the JSON from the extra keys config preference as is".
+ *
+ * The presets are organised like a compact PC keyboard: a function-key strip on
+ * top, the number row with shifted symbols in the five-row presets, a modifier
+ * and punctuation row, a clipboard/utility row and a navigation/edit cluster
+ * with Space/Enter at the bottom right. Long-press popups stay attached to the
+ * key they belong to (F7-F9 carry F10-F12, Backspace carries Delete, and so on).
  */
 public final class ExtraKeysLayouts {
 
@@ -32,35 +38,71 @@ public final class ExtraKeysLayouts {
         switch (layout) {
             case "9x4":
                 rows.put(row(fnRow()));
-                rows.put(row(navRow()));
-                rows.put(row(ctrlRow()));
-                rows.put(row(bottomRow()));
+                rows.put(row("ESC", "TAB", "CTRL", "ALT", "SHIFT", "META",
+                        popup("/", "\\"), popup("-", "|"), popup("BACKSPACE", "DELETE")));
+                rows.put(row("PREFERENCES", "MAPPER", "KEYBOARD", "C", "X",
+                        popup("V", "PASTE"), "Z", "P", "ENTER"));
+                rows.put(row(popup("HOME", "INS"), "END", "PGUP", "PGDN",
+                        "LEFT", "UP", "DOWN", "RIGHT", popup("SPACE", "A")));
                 break;
             case "10x4":
-                rows.put(row(extend(fnRow(), "INS")));
-                rows.put(row(extend(navRow(), "PASTE")));
-                rows.put(row(extend(ctrlRow(), "DEL")));
-                rows.put(row(extend(bottomRow(), "B")));
+                rows.put(row(escFnRow()));
+                rows.put(row("TAB", "CTRL", "ALT", "SHIFT", "META",
+                        popup("/", "\\"), popup("-", "|"),
+                        popup("BACKSPACE", "DELETE"), "PASTE", "INS"));
+                rows.put(row("PREFERENCES", "MAPPER", "KEYBOARD",
+                        "C", "X", "V", "Z", "P", "B", "ENTER"));
+                rows.put(row("HOME", "END", "PGUP", "PGDN",
+                        "LEFT", "UP", "DOWN", "RIGHT", popup("SPACE", "A"), "DEL"));
                 break;
             case "11x4":
-                rows.put(row(extend(fnRow(), "INS", "DEL")));
-                rows.put(row(extend(navRow(), "PASTE", "`")));
-                rows.put(row(extend(ctrlRow(), ";", "'")));
-                rows.put(row(extend(bottomRow(), "B", "N")));
+                rows.put(row(escFnRow("INS")));
+                rows.put(row("TAB", "CTRL", "ALT", "SHIFT", "META",
+                        popup("/", "\\"), popup("-", "|"), popup(";", ":"),
+                        popup("'", "\""), popup("`", "~"),
+                        popup("BACKSPACE", "DELETE")));
+                rows.put(row("PREFERENCES", "MAPPER", "KEYBOARD", "PASTE",
+                        "C", "X", "V", "Z", "P", "B", "N"));
+                rows.put(row("HOME", "END", "PGUP", "PGDN",
+                        "LEFT", "UP", "DOWN", "RIGHT", popup("SPACE", "A"),
+                        "DEL", "ENTER"));
+                break;
+            case "12x4":
+                rows.put(row(escFnRow("INS", "DEL")));
+                rows.put(row("TAB", "CTRL", "ALT", "SHIFT", "META",
+                        popup("/", "\\"), popup("-", "|"), popup(";", ":"),
+                        popup("'", "\""), popup("`", "~"),
+                        popup("BACKSPACE", "DELETE"), "PASTE"));
+                rows.put(row("PREFERENCES", "MAPPER", "KEYBOARD",
+                        "C", "X", "V", "Z", "P", "B", "N",
+                        popup("SPACE", "A"), "ENTER"));
+                rows.put(row("HOME", "END", "PGUP", "PGDN",
+                        "LEFT", "UP", "DOWN", "RIGHT",
+                        popup("[", "{"), popup("]", "}"),
+                        popup("(", ")"), popup("=", "+")));
                 break;
             case "10x5":
+                rows.put(row(escFnRow()));
                 rows.put(row(digitRow()));
-                rows.put(row(extend(fnRow(), "INS")));
-                rows.put(row(extend(navRow(), "PASTE")));
-                rows.put(row(extend(ctrlRow(), "DEL")));
-                rows.put(row(extend(bottomRow(), "B")));
+                rows.put(row("TAB", "CTRL", "ALT", "SHIFT", "META",
+                        popup("/", "\\"), popup("-", "|"),
+                        popup("BACKSPACE", "DELETE"), "PASTE", "INS"));
+                rows.put(row("PREFERENCES", "MAPPER", "KEYBOARD",
+                        "C", "X", "V", "Z", "P", "B", "ENTER"));
+                rows.put(row("HOME", "END", "PGUP", "PGDN",
+                        "LEFT", "UP", "DOWN", "RIGHT", popup("SPACE", "A"), "DEL"));
                 break;
             case "11x5":
-                rows.put(row(extend(digitRow(), "`")));
-                rows.put(row(extend(fnRow(), "INS", "DEL")));
-                rows.put(row(extend(navRow(), "PASTE", "`")));
-                rows.put(row(extend(ctrlRow(), ";", "'")));
-                rows.put(row(extend(bottomRow(), "B", "N")));
+                rows.put(row(escFnRow("INS")));
+                rows.put(row(digitRow(popup("`", "~"))));
+                rows.put(row("TAB", "CTRL", "ALT", "SHIFT", "META",
+                        popup("/", "\\"), popup("-", "|"), popup(";", ":"),
+                        popup("'", "\""), popup("BACKSPACE", "DELETE"), "PASTE"));
+                rows.put(row("PREFERENCES", "MAPPER", "KEYBOARD",
+                        "C", "X", "V", "Z", "P", "B", "N", "ENTER"));
+                rows.put(row("HOME", "END", "PGUP", "PGDN", "DEL",
+                        "LEFT", "UP", "DOWN", "RIGHT", popup("SPACE", "A"),
+                        popup("=", "+")));
                 break;
             default:
                 return null;
@@ -68,6 +110,7 @@ public final class ExtraKeysLayouts {
         return rows.toString();
     }
 
+    /** Function row without Esc: F1-F9, with F10-F12 on the long-press popups. */
     private static Object[] fnRow() {
         return new Object[]{
                 "F1", "F2", "F3", "F4", "F5", "F6",
@@ -75,34 +118,29 @@ public final class ExtraKeysLayouts {
         };
     }
 
-    private static Object[] navRow() {
-        return new Object[]{
-                "ESC", "/", popup("-", "|"), "HOME", "UP", "END", "PGUP",
-                "PREFERENCES", "MAPPER"
-        };
+    /** PC-style top row: Esc on the left, then F1-F9 and optional Ins/Del keys. */
+    private static Object[] escFnRow(Object... trailing) {
+        Object[] result = new Object[1 + 9 + trailing.length];
+        result[0] = "ESC";
+        System.arraycopy(fnRow(), 0, result, 1, 9);
+        System.arraycopy(trailing, 0, result, 10, trailing.length);
+        return result;
     }
 
-    private static Object[] ctrlRow() {
-        return new Object[]{
-                "TAB", "CTRL", "ALT", "LEFT", "DOWN", "RIGHT", "PGDN",
-                "KEYBOARD", popup("BACKSPACE", "DELETE")
-        };
-    }
-
-    private static Object[] bottomRow() {
-        return new Object[]{
-                "SHIFT", "META", "C", "X", "V", popup("SPACE", "A"), "Z", "P", "ENTER"
-        };
-    }
-
-    private static Object[] digitRow() {
-        return new Object[]{"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};
-    }
-
-    private static Object[] extend(Object[] base, Object... extra) {
-        Object[] result = new Object[base.length + extra.length];
-        System.arraycopy(base, 0, result, 0, base.length);
-        System.arraycopy(extra, 0, result, base.length, extra.length);
+    /** Number row with the shifted symbol on long press, like a real PC number row. */
+    private static Object[] digitRow(Object... trailing) {
+        Object[] result = new Object[10 + trailing.length];
+        result[0] = popup("1", "!");
+        result[1] = popup("2", "@");
+        result[2] = popup("3", "#");
+        result[3] = popup("4", "$");
+        result[4] = popup("5", "%");
+        result[5] = popup("6", "^");
+        result[6] = popup("7", "&");
+        result[7] = popup("8", "*");
+        result[8] = popup("9", "(");
+        result[9] = popup("0", ")");
+        System.arraycopy(trailing, 0, result, 10, trailing.length);
         return result;
     }
 
