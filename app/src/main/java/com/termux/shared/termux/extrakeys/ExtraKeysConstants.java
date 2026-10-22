@@ -90,7 +90,8 @@ public class ExtraKeysConstants {
             return false;
         String upper = key.toUpperCase(Locale.ROOT);
         return upper.startsWith("MOUSE_") || upper.startsWith("SCROLL_") || upper.startsWith("MOUSEWHEEL_")
-                || upper.startsWith("X11_MEDIA_") || upper.startsWith("MEDIA_") || upper.startsWith("VOLUME_");
+                || upper.startsWith("X11_MEDIA_") || upper.startsWith("X11_VOLUME_")
+                || upper.startsWith("MEDIA_") || upper.startsWith("VOLUME_");
     }
 
     /**
@@ -214,6 +215,13 @@ public class ExtraKeysConstants {
             put("VOLUME_UP", "🔊"); // U+1F50A
             put("VOLUME_DOWN", "🔉"); // U+1F509
             put("VOLUME_MUTE", "🔇"); // U+1F507
+
+            // volume keys sent to the X11 session, marked with an "x"
+            put("X11_VOLUME_UP", "X🔊");
+            put("X11_VOLUME_RAISE", "X🔊");
+            put("X11_VOLUME_DOWN", "X🔉");
+            put("X11_VOLUME_LOWER", "X🔉");
+            put("X11_VOLUME_MUTE", "X🔇");
         }};
 
         /**

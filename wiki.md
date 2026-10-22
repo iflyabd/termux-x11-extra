@@ -167,6 +167,7 @@ instead. You can always override it with `"display"`:
 | `MEDIA_REWIND` / `FAST_FORWARD` | `⏪`, `⏩` |
 | `X11_MEDIA_*` | the same symbol prefixed with `X` (`X⏯`, `X⏭`, ...) |
 | `VOLUME_UP` / `DOWN` / `MUTE` | `🔊`, `🔉`, `🔇` |
+| `X11_VOLUME_UP` / `DOWN` / `MUTE` | `X🔊`, `X🔉`, `X🔇` |
 
 ### Media keys
 
@@ -192,11 +193,29 @@ There are two families:
 These change the phone's media volume, not the volume inside X11. The system
 volume panel is shown.
 
-| Name | Action |
-|------|--------|
-| `VOLUME_UP` | Volume up |
-| `VOLUME_DOWN` | Volume down |
-| `VOLUME_MUTE` | Toggle mute |
+| Name | Label | Action |
+|------|-------|--------|
+| `VOLUME_UP` | 🔊 | Volume up |
+| `VOLUME_DOWN` | 🔉 | Volume down |
+| `VOLUME_MUTE` | 🔇 | Toggle mute |
+
+### X11 session volume
+
+These send the standard XF86 volume keysyms (`XF86AudioRaiseVolume`,
+`XF86AudioLowerVolume`, `XF86AudioMute`) into the desktop, so the volume of the
+player or of the desktop mixer running inside X11 changes.
+
+| Name | Label | Action |
+|------|-------|--------|
+| `X11_VOLUME_UP`, `X11_VOLUME_RAISE` | X🔊 | Volume up in X11 |
+| `X11_VOLUME_DOWN`, `X11_VOLUME_LOWER` | X🔉 | Volume down in X11 |
+| `X11_VOLUME_MUTE` | X🔇 | Toggle mute in X11 |
+
+A handy pattern is to use the X11 key as the popup of the phone key:
+
+```json
+{"key": "VOLUME_UP", "popup": "X11_VOLUME_UP"}
+```
 
 ## Examples
 

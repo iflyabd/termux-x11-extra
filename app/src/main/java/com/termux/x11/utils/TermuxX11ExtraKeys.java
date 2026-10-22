@@ -331,6 +331,8 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
             onMouseExtraKey(key);
         else if (upperKey.startsWith("X11_MEDIA_"))
             onX11MediaExtraKey(key);
+        else if (upperKey.startsWith("X11_VOLUME_"))
+            onX11VolumeExtraKey(key);
         else if (upperKey.startsWith("MEDIA_"))
             onMediaExtraKey(key);
         else if (upperKey.startsWith("VOLUME_"))
@@ -447,6 +449,32 @@ public class TermuxX11ExtraKeys implements ExtraKeysView.IExtraKeysView {
             case "X11_MEDIA_STOP":       keyCode = KeyEvent.KEYCODE_MEDIA_STOP; break;
             case "X11_MEDIA_REWIND":     keyCode = KeyEvent.KEYCODE_MEDIA_REWIND; break;
             case "X11_MEDIA_FAST_FORWARD": keyCode = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD; break;
+            default: return;
+        }
+
+        LorieView lorieView = mActivity.getLorieView();
+        if (lorieView == null)
+            return;
+
+        lorieView.sendKeyEvent(0, keyCode, true);
+        lorieView.sendKeyEvent(0, keyCode, false);
+    }
+
+    /**
+     * Volume keys for the X11 session: they send the standard XF86 volume keysyms
+     * ({@code XF86AudioRaiseVolume}, {@code XF86AudioLowerVolume} and
+     * {@code XF86AudioMute}) into the desktop, so the volume of the player or the
+     * desktop mixer running inside X11 changes. The plain {@code VOLUME_*} keys
+     * change the volume of the phone instead.
+     */
+    private void onX11VolumeExtraKey(@NonNull String rawKey) {
+        int keyCode;
+        switch (rawKey.toUpperCase(Locale.ROOT)) {
+            case "X11_VOLUME_UP":
+            case "X11_VOLUME_RAISE":   keyCode = KeyEvent.KEYCODE_VOLUME_UP; break;
+            case "X11_VOLUME_DOWN":
+            case "X11_VOLUME_LOWER":   keyCode = KeyEvent.KEYCODE_VOLUME_DOWN; break;
+            case "X11_VOLUME_MUTE":    keyCode = KeyEvent.KEYCODE_VOLUME_MUTE; break;
             default: return;
         }
 
